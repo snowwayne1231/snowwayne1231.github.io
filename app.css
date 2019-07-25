@@ -19021,6 +19021,19 @@ body {
 .page-game-setting li {
   min-height: 40px;
 }
+.page-game-setting select {
+  width: 100%;
+}
+.page-game-setting .block-title {
+  margin-top: 15px;
+}
+.page-game-setting .start-btn {
+  margin-bottom: 0px;
+}
+.page-game-setting .start-btn .button {
+  height: 54px;
+  line-height: 54px;
+}
 .page-game {
   display: flex;
   padding-top: 0px !important;
@@ -19047,6 +19060,7 @@ body {
 }
 .page-game .players {
   height: 100%;
+  width: 50%;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -19065,6 +19079,9 @@ body {
   background-color: #808080 !important;
   color: #ccc !important;
 }
+.page-game .players div[data-picking=true] {
+  background-color: #00f !important;
+}
 .page-game .left-player >div {
   writing-mode: vertical-lr;
 }
@@ -19076,12 +19093,31 @@ body {
   transform: rotateZ(180deg);
 }
 .process-alert {
-  display: flex;
+  display: none;
   position: absolute;
-  height: 100%;
+  height: 90%;
+  width: 90%;
+  z-index: 9;
+  top: 5%;
+  margin: 0% 5%;
+}
+.process-alert .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50%;
   width: 100%;
-  z-index: -1;
-  top: 0px;
+  font-size: 122px;
+  font-weight: bold;
+  background-color: #fff;
+  border: 2px outset #111;
+  box-sizing: border-box;
+}
+.process-alert .button.yes {
+  color: #008000;
+}
+.process-alert .button.no {
+  color: #f00;
 }
 .alert-wolf {
   width: 240px;
@@ -19092,5 +19128,8 @@ body {
   width: 240px;
   height: 240px;
   background-color: #a0e6ff;
+}
+.mp3s {
+  display: none;
 }
 
