@@ -19038,7 +19038,7 @@ body {
   display: flex;
   padding-top: 0px !important;
 }
-.page-game.is-night-true {
+.page-game.is-night {
   color: #ffdb6f;
   background-color: #422b4c;
 }
@@ -19046,10 +19046,13 @@ body {
   background-color: #5f2f00;
 }
 .page-game.process-1 .players .killing,
-.page-game.process-2 .players .killing,
-.page-game.process-9 .players .killing {
+.page-game.process-2 .players .killing {
   background-color: #f00;
   color: #fff;
+}
+.page-game.process-99.round-1.captain-mode .players {
+  visibility: hidden;
+  opacity: 0;
 }
 .page-game.has-witches-health-false.process-2 .players .killing {
   background-color: unset;
@@ -19130,6 +19133,28 @@ body {
   background-color: #a0e6ff;
 }
 .mp3s {
+  display: none;
+}
+#abs-go-night {
+  display: block;
+  position: absolute;
+  height: 64px;
+  width: 64px;
+  top: 50%;
+  left: 50%;
+  margin-top: -32px;
+  margin-left: -32px;
+  z-index: 98;
+  background-color: #590071;
+  color: #ff0;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 1px solid #999;
+  text-align: center;
+  line-height: 64px;
+  font-size: 26px;
+}
+.is-night #abs-go-night {
   display: none;
 }
 
