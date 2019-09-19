@@ -19012,6 +19012,11 @@ iframe#viAd {
 body {
   margin: 0px;
 }
+body .block-strong .button {
+  margin: 10px;
+  height: 42px;
+  line-height: 42px;
+}
 .input-invalid {
   color: #f00 !important;
 }
