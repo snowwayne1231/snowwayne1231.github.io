@@ -19047,6 +19047,9 @@ body .block-strong .button {
   color: #ffdb6f;
   background-color: #422b4c;
 }
+.page-game.is-night .players .banned-saying:before {
+  content: none;
+}
 .page-game.process-0 div[data-iswolf=true] {
   background-color: #5f2f00;
 }
@@ -19086,6 +19089,27 @@ body .block-strong .button {
 .page-game .players .killed {
   background-color: #808080 !important;
   color: #ccc !important;
+}
+.page-game .players .banned-saying {
+  position: relative;
+}
+.page-game .players .banned-saying:before {
+  content: '/';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 44px;
+  line-height: 58px;
+  border-radius: 50%;
+  border: 2px solid #f00;
+  color: #f00;
+  margin-left: -28px;
+  margin-top: -28px;
+  text-align: center;
+  box-sizing: border-box;
 }
 .page-game .players div[data-picking=true] {
   background-color: #00f !important;
