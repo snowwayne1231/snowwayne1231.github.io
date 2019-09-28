@@ -19028,6 +19028,7 @@ body .block-strong .button {
 }
 .page-game-setting select {
   width: 100%;
+  min-height: 32px;
 }
 .page-game-setting .block-title {
   margin-top: 15px;
@@ -19038,6 +19039,10 @@ body .block-strong .button {
 .page-game-setting .start-btn .button {
   height: 54px;
   line-height: 54px;
+}
+.page-game-setting .item-input-wrap input {
+  width: 100%;
+  min-height: 32px;
 }
 .page-game {
   display: flex;
