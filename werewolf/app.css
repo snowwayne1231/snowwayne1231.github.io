@@ -19186,7 +19186,10 @@ body .block-strong .button {
   border: 1px solid #999;
   text-align: center;
   line-height: 64px;
-  font-size: 26px;
+  font-size: 22px;
+}
+#abs-go-night.zw {
+  transform: rotateZ(180deg);
 }
 .is-night #abs-go-night {
   display: none;
