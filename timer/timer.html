@@ -58,6 +58,7 @@
             var btn_end = document.getElementById('ebutton');
             var audio_10s = document.getElementById('10s');
             var audio_bomb = document.getElementById('bomb');
+            audio_bomb.volume = 0.7;
             var startTime = new Date();
             var maxSecond = 30 * 1000;
             var MINUT = 1000 * 60;
@@ -99,6 +100,8 @@
                 startTime = new Date();
                 intervalTimer && window.clearInterval(intervalTimer);
                 intervalTimer = window.setInterval(showTime, 50);
+                audio_10s.currentTime = 0;
+                audio_10s.pause();
                 audio_bomb.currentTime = 0;
                 audio_bomb.pause();
             }
