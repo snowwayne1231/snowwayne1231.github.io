@@ -14,6 +14,9 @@
                 text-align: center;
             }
             #timer {
+                transform: rotate(180deg);
+            }
+            #timer, #timer-2 {
                 margin: 50px auto;
                 text-align:center;
                 color: #35b178;
@@ -24,6 +27,10 @@
                 font-size: 60px;
                 padding: 20px;
                 border-radius: 15px;
+                margin: 50px auto;
+            }
+            audio {
+                visibility: hidden;
             }
         </style>
     </head>
@@ -35,10 +42,22 @@
         </button>
         <button id="ebutton">End
         </button>
+        <div id="timer-2">
+            0:00.00
+        </div>
+        <audio id="10s">
+            <source src="./10s.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="bomb">
+            <source src="./bomb.mp3" type="audio/mpeg">
+        </audio>
         <script>
             var timer = document.getElementById('timer');
+            var timer2 = document.getElementById('timer-2');
             var btn = document.getElementById('tbutton');
             var btn_end = document.getElementById('ebutton');
+            var audio_10s = document.getElementById('10s');
+            var audio_bomb = document.getElementById('bomb');
             var startTime = new Date();
             var maxSecond = 30 * 1000;
             var MINUT = 1000 * 60;
@@ -50,11 +69,28 @@
                 if (gap < maxSecond && keep) {
                     var minuts = Math.floor(gap / MINUT);
                     var second = (gap - (minuts * MINUT)) / 1000;
-                    timer.innerHTML = `${minuts} : ${second.toFixed(2)}`;
+                    var innerHtml = `${minuts} : ${second.toFixed(2)}`;
+                    timer.innerHTML = innerHtml;
+                    timer2.innerHTML = innerHtml;
+                    if (second > 19 && audio_10s.paused) {
+                        audio_10s.currentTime = 0;
+                        audio_10s.play();
+                    }
                 } else {
-                    timer.innerHTML = 'Timeout.';
+                    innerHtml = 'Timeout.';
+                    timer.innerHTML = innerHtml;
+                    timer2.innerHTML = innerHtml;
                     window.clearInterval(intervalTimer);
                     intervalTimer = 0;
+                    audio_10s.currentTime = 0;
+                    audio_10s.pause();
+                    
+                    if (keep) {
+                        audio_bomb.play();
+                    } else {
+                        audio_bomb.pause();
+                    }
+                    
                 }
                 
             }
@@ -63,6 +99,8 @@
                 startTime = new Date();
                 intervalTimer && window.clearInterval(intervalTimer);
                 intervalTimer = window.setInterval(showTime, 50);
+                audio_bomb.currentTime = 0;
+                audio_bomb.pause();
             }
 
             function ClickEndBtn() {
