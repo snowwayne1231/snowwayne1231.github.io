@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="origin" name="referrer">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Timer</title>
+        <style>
+            body {
+                padding: 10px;
+                margin: 0px;
+                font-size: 80px;
+                background-color: #000000;
+                text-align: center;
+            }
+            #timer {
+                margin: 50px auto;
+                text-align:center;
+                color: #35b178;
+            }
+            button {
+                color: #35b178;
+                background-color: #ccc;
+                font-size: 60px;
+                padding: 20px;
+                border-radius: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="timer">
+            0:00.00
+        </div>
+        <button id="tbutton">Start
+        </button>
+        <button id="ebutton">End
+        </button>
+        <script>
+            var timer = document.getElementById('timer');
+            var btn = document.getElementById('tbutton');
+            var btn_end = document.getElementById('ebutton');
+            var startTime = new Date();
+            var maxSecond = 30 * 1000;
+            var MINUT = 1000 * 60;
+            var intervalTimer = 0;
+
+            function showTime(keep = true) {
+                var now = new Date();
+                var gap = now.getTime() - startTime.getTime();
+                if (gap < maxSecond && keep) {
+                    var minuts = Math.floor(gap / MINUT);
+                    var second = (gap - (minuts * MINUT)) / 1000;
+                    timer.innerHTML = `${minuts} : ${second.toFixed(2)}`;
+                } else {
+                    timer.innerHTML = 'Timeout.';
+                    window.clearInterval(intervalTimer);
+                    intervalTimer = 0;
+                }
+                
+            }
+
+            function ClickBtn() {
+                startTime = new Date();
+                intervalTimer && window.clearInterval(intervalTimer);
+                intervalTimer = window.setInterval(showTime, 50);
+            }
+
+            function ClickEndBtn() {
+                showTime(false);
+            }
+
+            btn.addEventListener('click', ClickBtn);
+            btn_end.addEventListener('click', ClickEndBtn);
+            
+        </script>
+    </body>
+    
+</html>
