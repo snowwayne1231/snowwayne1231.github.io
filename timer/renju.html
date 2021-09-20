@@ -119,6 +119,7 @@
 
                         if (p.timeLeft <= 0) {
                             p.timer.innerHTML = 'Timeout.';
+                            p.timer.style.color = 'red';
                             window.clearInterval(timerInval);
                         } else {
                             p.timer.innerHTML = secondToFormat(p.timeLeft);
