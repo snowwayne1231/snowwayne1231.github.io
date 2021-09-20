@@ -7,7 +7,7 @@
         <title>五子棋計時</title>
         <style>
             body {
-                padding: 10px;
+                padding: 0px;
                 margin: 0px;
                 font-size: 80px;
                 background-color: #ffcc62;
@@ -32,7 +32,7 @@
                 font-size: 60px;
                 padding: 20px;
                 border-radius: 15px;
-                margin: 36px auto;
+                margin: 20px auto;
             }
             audio {
                 visibility: hidden;
@@ -118,7 +118,7 @@
                         p.timeLeft -= Math.min(0.3, (now.getTime() - lastInval.getTime()) / 1000)
 
                         if (p.timeLeft <= 0) {
-                            p.timer.innerHTML = 'Timeout !!';
+                            p.timer.innerHTML = 'Timeout.';
                             window.clearInterval(timerInval);
                         } else {
                             p.timer.innerHTML = secondToFormat(p.timeLeft);
