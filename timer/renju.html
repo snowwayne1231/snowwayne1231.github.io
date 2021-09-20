@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="origin" name="referrer">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>五子棋計時</title>
+        <style>
+            body {
+                padding: 10px;
+                margin: 0px;
+                font-size: 80px;
+                background-color: #ffcc62;
+                text-align: center;
+            }
+            body >div {
+                height: 25vh;
+                margin: 0 auto;
+                padding: 0px;
+            }
+            #timer {
+                transform: rotate(180deg);
+            }
+            #timer, #timer-2 {
+                margin: 0px auto;
+                text-align:center;
+                color: #3e3e3e;
+            }
+            button {
+                color: #3e3e3e;
+                background-color: #ccc;
+                font-size: 60px;
+                padding: 20px;
+                border-radius: 15px;
+                margin: 36px auto;
+            }
+            audio {
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div><button id="tbutton">●○</button>
+        </div>
+        <div id="timer">
+            0:00
+        </div>
+        <div id="timer-2">
+            0:00
+        </div>
+        <div><button id="ebutton">○●</button></div>
+        <audio id="10s">
+            <source src="./10s.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="bomb">
+            <source src="./bomb.mp3" type="audio/mpeg">
+        </audio>
+        <script>
+            var settiingMinutes = parseInt(window.prompt('Enter Minutes:'));
+            // var settiingMinutes = 5;
+            var timerInval = 0;
+            var lastInval = new Date();
+            var players = [
+                {
+                    btn: document.getElementById('tbutton'),
+                    timer: document.getElementById('timer'),
+                    timeLeft: settiingMinutes * 60,
+                    timeOpen: false,
+                    timeInt: 0
+                },
+                {
+                    btn: document.getElementById('ebutton'),
+                    timer: document.getElementById('timer-2'),
+                    timeLeft: settiingMinutes * 60,
+                    timeOpen: false,
+                    timeInt: 0
+                }
+            ];
+
+
+            function init(players) {
+                players.map((p, idx) => {
+                    var nextPlayer = players[idx+1] || players[0];
+                    p.btn.addEventListener('click', ClickBtnFactory(p, nextPlayer), false);
+                    p.timer.innerHTML = secondToFormat(p.timeLeft);
+                    p.timer.addEventListener('click', ClickEndBtn, false);
+                });
+
+                timerInval = window.setInterval(windowInterval, 200);
+            }
+
+            function secondToFormat(second) {
+                var _int = Math.floor(second);
+                var _m = Math.floor(_int / 60)
+                var _s = _int % 60;
+                return `${_m}:${String(_s).padStart(2, '0')}`;
+            }
+
+            
+            function ClickBtnFactory(player, nextPlayer) {
+                return function ClickBtn() {
+                    player.timeOpen = false;
+                    nextPlayer.timeOpen = true;
+                    startTime = new Date();
+                }
+            }
+            
+            function ClickEndBtn() {
+                players.map(p => {
+                    p.timeOpen = false;
+                });
+            }
+
+            function windowInterval() {
+                var now = new Date();
+                players.map(p => {
+                    if (p.timeOpen) {
+                        p.timeLeft -= Math.min(0.3, (now.getTime() - lastInval.getTime()) / 1000)
+
+                        if (p.timeLeft <= 0) {
+                            p.timer.innerHTML = 'Timeout !!';
+                            window.clearInterval(timerInval);
+                        } else {
+                            p.timer.innerHTML = secondToFormat(p.timeLeft);
+                        }
+                    }
+                    
+                });
+                lastInval = now;
+            }
+
+            init(players);
+
+        </script>
+    </body>
+    
+</html>

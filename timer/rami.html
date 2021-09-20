@@ -52,6 +52,7 @@
             <source src="./bomb.mp3" type="audio/mpeg">
         </audio>
         <script>
+            var settiingSecond = parseInt(window.prompt('Enter Second:'));
             var timer = document.getElementById('timer');
             var timer2 = document.getElementById('timer-2');
             var btn = document.getElementById('tbutton');
@@ -60,7 +61,7 @@
             var audio_bomb = document.getElementById('bomb');
             audio_bomb.volume = 0.7;
             var startTime = new Date();
-            var maxSecond = 30 * 1000;
+            var maxSecond = settiingSecond * 1000;
             var MINUT = 1000 * 60;
             var intervalTimer = 0;
 
@@ -73,7 +74,7 @@
                     var innerHtml = `${minuts} : ${second.toFixed(2)}`;
                     timer.innerHTML = innerHtml;
                     timer2.innerHTML = innerHtml;
-                    if (second > 19 && audio_10s.paused) {
+                    if (second > (settiingSecond-10) && audio_10s.paused) {
                         audio_10s.currentTime = 0;
                         audio_10s.play();
                     }
@@ -91,9 +92,9 @@
                     } else {
                         audio_bomb.pause();
                     }
-                    
+
                 }
-                
+
             }
 
             function ClickBtn() {
@@ -112,7 +113,7 @@
 
             btn.addEventListener('click', ClickBtn);
             btn_end.addEventListener('click', ClickEndBtn);
-            
+
         </script>
     </body>
     
