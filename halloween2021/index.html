@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="origin" name="referrer">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>萬聖節-透抽遊戲</title>
+        <style>
+            body {
+                padding: 0px;
+                margin: 0px;
+                background-color: #3c3c3c;
+                text-align: center;
+            }
+            body >div {
+                width: 100%;
+                margin: 0 auto;
+                padding: 0px;
+                overflow: hidden;
+                display: flex;
+                position: relative;
+            }
+            #timer {
+                color: #ff0000;
+                height: 80vh;
+            }
+            #timer #timer-inner{
+                flex: 1;
+                font-size: 200px;
+                align-self: center;
+            }
+            #logo {
+                font-size: 80px;
+                color: #c300bd;
+                height: 20vh;
+            }
+            #logo span {
+                flex: 1;
+                align-self: end;
+            }
+
+            button {
+                color: #3e3e3e;
+                background-color: #ccc;
+                font-size: 60px;
+                padding: 20px;
+                border-radius: 15px;
+                margin: 20px auto;
+            }
+            audio {
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="timer"><span id="timer-inner">01:00</span></div>
+        <div id="logo"><span>○△□</span></div>
+        <audio id="wood_123">
+            <source src="./123wood.mp3" type="audio/mpeg">
+        </audio>
+        <script>
+            var timerInval = 0;
+            var lastInval = new Date();
+            var dom_timer = document.getElementById('timer-inner');
+            var dom_logo = document.getElementById('logo');
+            var dom_audio_wood = document.getElementById('wood_123');
+            var left_second = 60;
+            var is_paused = true;
+            
+
+            function init() {
+                windowResize();
+                dom_audio_wood.addEventListener("ended", function(e){
+                    console.log('wood stoped.');
+                    is_paused = true;
+                    dom_timer.style.color = '#ff0000';
+                }, false);
+
+                document.body.addEventListener('click', function(e) {
+                    if (left_second <= 0) {
+                        console.log('reset');
+                        resetThisGame();
+                    } else {
+                        if (is_paused) {
+                            activateTimer();
+                        }
+                    }
+                });
+            }
+
+            function windowResize() {
+                var wHeight = window.innerHeight;
+                var wWidth = window.innerWidth;
+                var matchHeight = parseInt(wHeight / 2);
+                var matchWidth = parseInt(wWidth / 3);
+                
+                var minHW = Math.min(matchHeight, matchWidth);
+                if (matchHeight > matchWidth) {
+                    dom_timer.style.fontSize = matchWidth + 'px';
+                } else {
+                    dom_timer.style.fontSize = matchHeight + 'px';
+                }
+            }
+
+            function activateTimer() {
+                is_paused = false;
+                if (timerInval) {
+                    window.clearInterval(timerInval);
+                }
+                // lastInval = new Date();
+                timerInval = window.setInterval(timerHandler, 200);
+                dom_audio_wood.playbackRate = Math.min(1, Math.round(Math.random()*65 + 65) / 100);
+                dom_audio_wood.play();
+                dom_timer.style.color = '#10ff00';
+                
+            }
+
+            function timerHandler() {
+                if (is_paused) { return false; }
+                var nowDate = new Date();
+                if (nowDate.getTime() - lastInval.getTime() > 950) {
+                    left_second -= 1;
+                    lastInval = nowDate;
+                    dom_timer.innerHTML = `00:${left_second.toString().padStart(2, '0')}`;
+                    var happend_speed_up_rate = getSpeedHappendRate(left_second);
+                    if (Math.random() <= happend_speed_up_rate && dom_audio_wood.currentTime > 2) {
+                        dom_audio_wood.playbackRate = Math.min(3, Math.round(Math.random()*100 + 200) / 100);
+                    }
+                    
+                    if (left_second == 0) {
+                        handleEnd();
+                    }
+                }
+            }
+
+            function getSpeedHappendRate(second) {
+                switch (true) {
+                    case second > 50: return 0.15;
+                    case second > 40: return 0.20;
+                    case second > 30: return 0.25;
+                    case second > 20: return 0.10;
+                    case second > 15: return 0.05;
+                }
+                return 0.00;
+            }
+
+            function handleEnd() {
+                is_paused = true;
+                dom_audio_wood.playbackRate = 1;
+            }
+
+            function resetThisGame() {
+                left_second = 60;
+                activateTimer();
+            }
+
+            init();
+            window.onresize = windowResize;
+
+        </script>
+    </body>
+    
+</html>
