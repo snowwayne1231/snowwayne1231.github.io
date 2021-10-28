@@ -55,7 +55,7 @@
     <body>
         <div id="timer"><span id="timer-inner">01:00</span></div>
         <div id="logo"><span>○△□</span></div>
-        <audio id="wood_123">
+        <audio id="wood_123" preload="auto" >
             <source src="./123wood.mp3" type="audio/mpeg">
         </audio>
         <script>
@@ -74,7 +74,9 @@
                     console.log('wood stoped.');
                     is_paused = true;
                     dom_timer.style.color = '#ff0000';
+                    dom_audio_wood.playbackRate = 1;
                 }, false);
+                dom_audio_wood.load();
 
                 document.body.addEventListener('click', function(e) {
                     if (left_second <= 0) {
@@ -118,7 +120,9 @@
             function timerHandler() {
                 if (is_paused) { return false; }
                 var nowDate = new Date();
-                if (nowDate.getTime() - lastInval.getTime() > 950) {
+                if (left_second == 0) {
+                    handleEnd();
+                } else if (nowDate.getTime() - lastInval.getTime() > 950) {
                     left_second -= 1;
                     lastInval = nowDate;
                     dom_timer.innerHTML = `00:${left_second.toString().padStart(2, '0')}`;
@@ -126,17 +130,13 @@
                     if (Math.random() <= happend_speed_up_rate && dom_audio_wood.currentTime > 2) {
                         dom_audio_wood.playbackRate = Math.min(3, Math.round(Math.random()*100 + 200) / 100);
                     }
-                    
-                    if (left_second == 0) {
-                        handleEnd();
-                    }
                 }
             }
 
             function getSpeedHappendRate(second) {
                 switch (true) {
-                    case second > 50: return 0.15;
-                    case second > 40: return 0.20;
+                    case second > 50: return 0.10;
+                    case second > 40: return 0.15;
                     case second > 30: return 0.25;
                     case second > 20: return 0.10;
                     case second > 15: return 0.05;
@@ -145,8 +145,8 @@
             }
 
             function handleEnd() {
-                is_paused = true;
-                dom_audio_wood.playbackRate = 1;
+                // is_paused = true;
+                dom_audio_wood.playbackRate = 4;
             }
 
             function resetThisGame() {
