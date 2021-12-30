@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        div, body {
+            position: relative;
+            margin: 0px auto;
+        }
+        .full {
+            border: 1px solid #ccc;
+            width: 90%;
+            height: 90vh;
+            margin: 0 auto;
+        }
+        #stage {
+            background-color: #dcfff6;
+            width: 720px;
+            height: 360px;
+            border: 1px solid #666;
+        }
+        #dance-zone {
+            width: 500px;
+            height: 200px;
+            /* background-color: #ffe5cc; */
+            background: linear-gradient(to right,#ccc 1px,transparent 1px),linear-gradient(to bottom,#ccc 1px,transparent 1px);
+            margin: 50px auto 0px;
+            padding: 0px 51px 51px;
+            background-repeat: repeat;
+            background-size: 60px 50px;
+        }
+        .person {
+            position: absolute;
+            display: inline-block;
+            margin: -15px -20px;
+            border-radius: 15px;
+            background-color: #ff5454;
+            height: 30px;
+            width: 40px;
+            transition: all 0.6s ease;
+            text-align: center;
+            font-size: 13px;
+            line-height: 30px;
+            color: #fff;
+        }
+        .btn {
+            min-width: 80px;
+            min-height: 40px;
+            line-height: 32px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .b9, .b10, .b16, .b17 {
+            color: red;
+        }
+        .b23, .b24 {
+            color: #e59400;
+        }
+        .b1, .b2 {
+            color: #c3c300;
+        }
+        .b21, .b22 {
+            color: green;
+        }
+        #page {
+            font-size: 28px;
+            margin: 10px auto;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="full">
+        <div id="stage">
+            <div id="dance-zone"></div>
+            <p id="page" style="text-align: center;">1</p>
+        </div>
+        <div id="btns">
+
+        </div>
+    </div>
+
+    <script>
+        var JIN = 1;
+        var JMI = 2;
+        var V = 3;
+        var JKO = 4;
+        var SGA = 5;
+        var HOP = 6;
+        var RM = 7;
+        var positions = [
+            [
+                [   0, JIN,   0,   V,   0, SGA,   0,  RM,   0],
+                [   0,   0, JMI,   0, JKO,   0, HOP,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
+                [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0, JKO,   0,   0,   0,   0],
+                [   0, JMI,   0,   0,   0,   0,   0, HOP,   0],
+            ],
+            [
+                [   0,   0, JIN,   0,   0,   0, SGA,   0,   0],
+                [ JMI,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0, HOP,   0,   0,   0,  RM],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   V,   0,   0,   0,   0,   0, JKO,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0, JIN,   0, SGA,   0,   0,   0],
+                [   0,   0, JMI,   0, HOP,   0,  RM,   0,   0],
+                [   0,   0,   0,   V,   0, JKO,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0, JMI,   V, JIN, SGA, HOP, JKO,  RM,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0, JIN,   0, HOP,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [ JMI,   0,   0,   0, SGA,   0,   0,   0,  RM],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   V,   0,   0,   0,   0,   0, JKO,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0, JIN,   0, HOP,   0,   0,   0],
+                [   0,   0,   V,   0, JKO,   0, SGA,   0,   0],
+                [   0,   0,   0, JMI,   0,  RM,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0, HOP,   0, SGA,   0,   0,   0],
+                [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
+                [   0,   0,   0,   V,   0, JKO,   0,   0,   0],
+                [   0,   0,   0,   0, JMI,   0,   0,   0,   0],
+            ],
+            [//副歌
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   V,   0,   0,   0, SGA,   0,   0],
+                [   0, JIN,   0,   0,   0,   0,   0,  RM,   0],
+                [   0,   0,   0, JMI,   0, HOP,   0,   0,   0],
+                [   0,   0,   0,   0, JKO,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
+                [   0, JMI,   0,   0, JKO,   0,   0, HOP,   0],
+                [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0, JIN,   0, JKO,   0,   0,   0],
+                [   0,   0,   V,   0,   0,   0, HOP,   0,   0],
+                [   0,   0,   0, JMI,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0,  RM,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   V,   0, JIN,   0,   0,   0],
+                [   0,   0, JMI,   0, SGA,   0, JKO,   0,   0],
+                [   0,   0,   0,  RM,   0, HOP,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0, JMI,   V,  RM,   0, SGA, HOP, JKO,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0, JIN,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,  RM,   V,   0, JKO, HOP,   0,   0],
+                [   0,   0,   0, JMI, JIN, SGA,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0, JIN,   0, JKO,   0,   0,   0],
+                [   0,   0,  RM,   0,   0,   0, HOP,   0,   0],
+                [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0, JMI,   0,   0,   0,   0],
+            ],
+            [//副歌
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   V,   0,   0,   0, SGA,   0,   0],
+                [   0, JIN,   0,   0,   0,   0,   0,  RM,   0],
+                [   0,   0,   0, JMI,   0, HOP,   0,   0,   0],
+                [   0,   0,   0,   0, JKO,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
+                [   0, JMI,   0,   0, JKO,   0,   0, HOP,   0],
+                [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0, JMI,   0,   V,   0, SGA,   0, HOP,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0, JKO,   0,  RM,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [//旋轉
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   V,   0,   0,   0,  RM,   0,   0],
+                [   0,   0,   0, JKO,   0, HOP,   0,   0,   0],
+                [   0, JMI,   0,   0,   0,   0,   0, SGA,   0],
+                [   0,   0,   0,   0, JIN,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0, JMI,   0,  RM,   0,   0],
+                [   0, HOP,   0,   0,   0,   0,   0, JKO,   0],
+                [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   V,   0, SGA,  RM,   0,   0],
+                [   0,   0,   0, HOP,   0, JKO,   0,   0,   0],
+                [   0,   0,   0,   0, JMI,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
+                [   0,   V,   0,   0, JMI,   0,   0, SGA,   0],
+                [   0,   0,   0, HOP,   0, JKO,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [//大跑動
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0, JIN,   0, JMI,   0, SGA,   0,  RM,   0],
+                [   0,   0, HOP,   0,   V,   0, JKO,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+            [//Ending Pose
+                [   0, JIN,   0, JMI,   0,   0,   0,  RM,   0],
+                [   0,   0,   0,   0,   0,   0, JKO,   0,   0],
+                [   0,   0,   0, HOP,   0,   V,   0,   0,   0],
+                [   0,   0,   0,   0, SGA,   0,   0,   0,   0],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+            ],
+        ];
+
+        var names = [0, 'JIN', 'JIMIN', 'V', '柾國', 'SUGA', 'JHope', 'RM'];
+
+        var dom_btns = document.getElementById('btns');
+        var dom_dance = document.getElementById('dance-zone');
+        var dom_page = document.getElementById('page');
+        var gap_width = 60;
+        var gap_height = 50;
+        var lockNum = 0;
+        var is_mirrored = true;
+
+        function buildBtns() {
+            var _html = '';
+            positions.map((e,idx) => {
+                _html += `<button class="btn b${idx+1}" data-idx="${idx}">${idx+1}</button>`;
+            });
+            dom_btns.innerHTML = _html;
+        }
+
+        function buildPeople() {
+            var _html = '';
+            var cut = positions[0];
+            cut.map((ary, row_idx) => {
+                ary.map((n, col_idx) => {
+                    if (n > 0) {
+                        var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
+                        var person = `<p id="p-${n}" class="person" data-star="${n}" style="top: ${row_idx*gap_height}px; left: ${_left}px;">${names[n]}</p>`
+                        _html += person;
+                    }
+                });
+            });
+            dom_dance.innerHTML = _html;
+        }
+
+        function moveToCut(cut_idx) {
+            var cut = positions[cut_idx];
+            // console.log('cut: ', cut);
+            dom_page.innerHTML = parseInt(cut_idx)+1;
+            cut.map((ary, row_idx) => {
+                ary.map((n, col_idx) => {
+                    if (n > 0) {
+                        var _id = `p-${n}`;
+                        var person = document.getElementById(_id);
+                        var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
+                        person.style.top = row_idx*gap_height + 'px';
+                        person.style.left = _left + 'px';
+                    }
+                });
+            });
+        }
+
+        function init() {
+            buildBtns();
+            dom_btns.addEventListener('click', function(e) {
+                var t = e.target;
+                console.log('t: ', [t]);
+                if (t.classList[0]=='btn') {
+                    var _idx = t.dataset.idx;
+                    // var data = positions[_idx];
+                    moveToCut(_idx);
+                }
+            });
+            buildPeople();
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
