@@ -19,14 +19,14 @@
             border: 1px solid #666;
         }
         #dance-zone {
-            width: 500px;
+            width: 560px;
             height: 200px;
             /* background-color: #ffe5cc; */
             background: linear-gradient(to right,#ccc 1px,transparent 1px),linear-gradient(to bottom,#ccc 1px,transparent 1px);
             margin: 50px auto 0px;
-            padding: 0px 51px 51px;
+            padding: 0px 1px 1px;
             background-repeat: repeat;
-            background-size: 60px 50px;
+            background-size: 70px 50px;
         }
         #btns {
             position: relative;
@@ -68,13 +68,14 @@
         }
         #page {
             font-size: 28px;
-            margin: 10px auto;
+            margin: 40px auto 5px;
         }
     </style>
 
 </head>
 <body>
     <div class="full">
+        <div>↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 觀眾 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑</div>
         <div id="stage">
             <div id="dance-zone"></div>
             <p id="page" style="text-align: center;">1</p>
@@ -109,8 +110,8 @@
             ],
             [
                 [   0,   0, JIN,   0,   0,   0, SGA,   0,   0],
-                [ JMI,   0,   0,   0,   0,   0,   0,   0,   0],
-                [   0,   0,   0,   0, HOP,   0,   0,   0,  RM],
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [ JMI,   0,   0,   0, HOP,   0,   0,   0,  RM],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
                 [   0,   V,   0,   0,   0,   0,   0, JKO,   0],
             ],
@@ -296,7 +297,7 @@
         var dom_dance = document.getElementById('dance-zone');
         var dom_page = document.getElementById('page');
         var dom_img = document.getElementById('show-image');
-        var gap_width = 60;
+        var gap_width = 70;
         var gap_height = 50;
         var lockNum = 0;
         var is_mirrored = false;
@@ -315,8 +316,10 @@
             cut.map((ary, row_idx) => {
                 ary.map((n, col_idx) => {
                     if (n > 0) {
-                        var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
-                        var person = `<p id="p-${n}" class="person" data-star="${n}" style="top: ${row_idx*gap_height}px; left: ${_left}px;">${names[n]}</p>`
+                        // var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
+                        // var person = `<p id="p-${n}" class="person" data-star="${n}" style="top: ${row_idx*gap_height}px; left: ${_left}px;">${names[n]}</p>`
+                        var _left = is_mirrored ? (col_idx)*gap_width : (8-col_idx)*gap_width;
+                        var person = `<p id="p-${n}" class="person" data-star="${n}" style="top: ${(4-row_idx)*gap_height}px; left: ${_left}px;">${names[n]}</p>`;
                         _html += person;
                     }
                 });
@@ -333,8 +336,9 @@
                     if (n > 0) {
                         var _id = `p-${n}`;
                         var person = document.getElementById(_id);
-                        var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
-                        person.style.top = row_idx*gap_height + 'px';
+                        // var _left = is_mirrored ? (9-col_idx)*gap_width : (col_idx+1)*gap_width;
+                        var _left = is_mirrored ? (col_idx)*gap_width : (8-col_idx)*gap_width;
+                        person.style.top = (4-row_idx)*gap_height + 'px';
                         person.style.left = _left + 'px';
                     }
                 });
