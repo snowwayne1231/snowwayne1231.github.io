@@ -5,9 +5,9 @@
         div, body {
             position: relative;
             margin: 0px auto;
+            text-align: center;
         }
         .full {
-            border: 1px solid #ccc;
             width: 90%;
             height: 90vh;
             margin: 0 auto;
@@ -28,6 +28,11 @@
             background-repeat: repeat;
             background-size: 60px 50px;
         }
+        #btns {
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
         .person {
             position: absolute;
             display: inline-block;
@@ -43,9 +48,9 @@
             color: #fff;
         }
         .btn {
-            min-width: 80px;
-            min-height: 40px;
-            line-height: 32px;
+            min-width: 92px;
+            min-height: 48px;
+            line-height: 40px;
             font-size: 20px;
             cursor: pointer;
         }
@@ -75,8 +80,8 @@
             <p id="page" style="text-align: center;">1</p>
         </div>
         <div id="btns">
-
         </div>
+        <div><img id="show-image" src="./img/bts/01.jpg" style="width: 720px;" /></div>
     </div>
 
     <script>
@@ -89,10 +94,10 @@
         var RM = 7;
         var positions = [
             [
+                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
                 [   0, JIN,   0,   V,   0, SGA,   0,  RM,   0],
-                [   0,   0, JMI,   0, JKO,   0, HOP,   0,   0],
-                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
-                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+                [   0,   0,   0,   0, JKO,   0,   0,   0,   0],
+                [   0,   0, JMI,   0,   0,   0, HOP,   0,   0],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
             ],
             [
@@ -100,7 +105,7 @@
                 [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
                 [   0,   0,   0,   V,   0, SGA,   0,   0,   0],
                 [   0,   0,   0,   0, JKO,   0,   0,   0,   0],
-                [   0, JMI,   0,   0,   0,   0,   0, HOP,   0],
+                [ JMI,   0,   0,   0,   0,   0,   0,   0, HOP],
             ],
             [
                 [   0,   0, JIN,   0,   0,   0, SGA,   0,   0],
@@ -117,8 +122,8 @@
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
             ],
             [
-                [   0,   0,   0,   0,   0,   0,   0,   0,   0],
-                [   0, JMI,   V, JIN, SGA, HOP, JKO,  RM,   0],
+                [ JMI,   0, JIN,   0, SGA,   0, HOP,   0,  RM],
+                [   0,   V,   0,   0,   0,   0,   0, JKO,   0],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
@@ -238,8 +243,8 @@
             [
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
                 [   0,   0, JIN,   0,   0,   0,  RM,   0,   0],
-                [   0,   V,   0,   0, JMI,   0,   0, SGA,   0],
-                [   0,   0,   0, HOP,   0, JKO,   0,   0,   0],
+                [   0,   0,   0,   0, JMI,   0,   0,   0,   0],
+                [   V,   0,   0, HOP,   0, JKO,   0,   0, SGA],
                 [   0,   0,   0,   0,   0,   0,   0,   0,   0],
             ],
             [//大跑動
@@ -258,11 +263,39 @@
             ],
         ];
 
+        var images = [
+            './img/bts/01.jpg',
+            './img/bts/02.jpg',
+            './img/bts/03.jpg',
+            './img/bts/04.jpg',
+            './img/bts/05.jpg',
+            './img/bts/06.jpg',
+            './img/bts/07.jpg',
+            './img/bts/08.jpg',
+            './img/bts/09.jpg',
+            './img/bts/10.jpg',
+            './img/bts/11.jpg',
+            './img/bts/12.jpg',
+            './img/bts/13.jpg',
+            './img/bts/14.jpg',
+            './img/bts/15.jpg',
+            './img/bts/16.jpg',
+            './img/bts/17.jpg',
+            './img/bts/18.jpg',
+            './img/bts/19.jpg',
+            './img/bts/20.jpg',
+            './img/bts/21.jpg',
+            './img/bts/22.jpg',
+            './img/bts/23.jpg',
+            './img/bts/24.jpg',
+        ];
+
         var names = [0, 'JIN', 'JIMIN', 'V', '柾國', 'SUGA', 'JHope', 'RM'];
 
         var dom_btns = document.getElementById('btns');
         var dom_dance = document.getElementById('dance-zone');
         var dom_page = document.getElementById('page');
+        var dom_img = document.getElementById('show-image');
         var gap_width = 60;
         var gap_height = 50;
         var lockNum = 0;
@@ -306,6 +339,7 @@
                     }
                 });
             });
+            dom_img.src = images[cut_idx];
         }
 
         function init() {
