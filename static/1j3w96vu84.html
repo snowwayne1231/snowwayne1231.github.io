@@ -5,22 +5,72 @@
         <meta name ="viewport" content ="width=device-width, initial-scale=1, maximum-scale=2, minimum-scale=1">
         <title>線索一</title>
         <style>
+            body, p, div {
+                margin: 0px;
+                padding: 0px;
+                font-size: 24px;
+                text-align: center;
+                position: relative;
+                background-color: #091829;
+                color: #ebd843;
+            }
+            img {
+                max-width: 100%;
+            }
+            i {
+                font-size: 16px;
+                color: #ebd843;
+            }
+            p {
+                padding: 10px 0px;
+            }
+
+            #main {
+                box-sizing: border-box;
+                border: 4px #ebd843 outset;
+                height: 100vh;
+                width: 100%;
+            }
         </style>
     </head>
     <body>
         <div id="main" style="display: none;">
             <div>
-                
+                <img src="./img/2021annual/170646EC-47FF-4576-9E1E-EC088C896DE8.jpg" />
+                <p>從舞台下找到死者生前的筆記本</p>
             </div>
         </div>
         <script>
             var dom_main = document.getElementById('main');
-            var tips = prompt('請輸入線索地點');
-            if (tips == '\u821E\u53F0\u4E0A') {
-                dom_main.style.display = 'block';
-            } else {
-                dom_main.innerHtml = '';
+
+            function checkTime() {
+                var _timestamp = window.localStorage.getItem('_timestamp');
+                if (_timestamp) {
+                    var _now = new Date();
+                    var _time = new Date(_timestamp);
+                    // console.log('time:', _time);
+                    var gap = _now.getTime() - _time.getTime();
+                    console.log('gap: ', gap);
+                    if (gap < 15158) {
+                        window.alert('請於15秒後再試.');
+                        return false;
+                    }
+                }
+                return true;
             }
+
+            if (checkTime()) {
+                var tips = window.prompt('請輸入線索地點');
+                
+                if (tips == '\u821e\u53f0\u4e0b') {
+                    
+                } else {
+                    dom_main.innerHTML = '線索錯誤...';
+                    window.localStorage.setItem('_timestamp', new Date().toUTCString());
+                }
+                dom_main.style.display = 'block';
+            }
+            
         </script>
     </body>
 </html>

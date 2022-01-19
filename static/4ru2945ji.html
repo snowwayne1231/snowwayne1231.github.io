@@ -1,9 +1,75 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
+        <meta name ="viewport" content ="width=device-width, initial-scale=1, maximum-scale=2, minimum-scale=1">
+        <title>線索二</title>
         <style>
+            body, p, div {
+                margin: 0px;
+                padding: 0px;
+                font-size: 24px;
+                text-align: center;
+                position: relative;
+                background-color: #091829;
+                color: #ebd843;
+            }
+            img {
+                max-width: 100%;
+            }
+            i {
+                font-size: 16px;
+                color: #ebd843;
+            }
+            p {
+                padding: 10px 0px;
+            }
+
+            #main {
+                box-sizing: border-box;
+                border: 4px #ebd843 outset;
+                height: 100vh;
+                width: 100%;
+            }
         </style>
     </head>
     <body>
+        <div id="main" style="display: none;">
+            <div>
+                <img src="./img/2021annual/B38E4712-9AC7-474F-ACDD-3D5B1C767E9A.jpg" />
+                <p>找到死者生前奮力留下的訊息</p>
+            </div>
+        </div>
+        <script>
+            var dom_main = document.getElementById('main');
+
+            function checkTime() {
+                var _timestamp = window.localStorage.getItem('_timestamp');
+                if (_timestamp) {
+                    var _now = new Date();
+                    var _time = new Date(_timestamp);
+                    // console.log('time:', _time);
+                    var gap = _now.getTime() - _time.getTime();
+                    console.log('gap: ', gap);
+                    if (gap < 15158) {
+                        window.alert('請於15秒後再試.');
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (checkTime()) {
+                var tips = window.prompt('請輸入線索地點');
+                if (tips == '\u63a5\u5f85\u684c') {
+                    
+                } else {
+                    dom_main.innerHTML = '線索錯誤...';
+                    window.localStorage.setItem('_timestamp', new Date().toUTCString());
+                }
+                dom_main.style.display = 'block';
+            }
+            
+        </script>
     </body>
 </html>
