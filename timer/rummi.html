@@ -81,12 +81,16 @@
             audio {
                 visibility: hidden;
             }
+
+            .stop .stopping {
+                color: #ff0000;
+            }
         </style>
     </head>
     <body>
         <div id="global-bg">
             <div class="flex-layer">
-                <button id="button-start-1">⭮</button>
+                <button id="button-start-1">⟳</button>
             </div>
             <div class="flex-layer" style="height: 60%;">
                 <div class="layer-sub layer-top">
@@ -97,7 +101,7 @@
                         <div class="timer" id="timer-2">0:00</div>
                     </div>
                     <div class="sub-box" style="width: 60%;">
-                        <div class="stop"><button style="padding: 20px;" id="button-end">🛑▶</button></div>
+                        <div class="stop"><button style="padding: 20px;" id="button-end" class="stopping">🛑▶</button></div>
                     </div>
                     <div class="sub-box">
                         <div class="timer" id="timer-4">0:00</div>
@@ -108,7 +112,7 @@
                 </div>
             </div>
             <div class="flex-layer">
-                <button id="button-start-2">⭮</button>
+                <button id="button-start-2">⟳</button>
             </div>
             <audio id="10s">
                 <source src="./10s.mp3" type="audio/mpeg">
@@ -118,11 +122,11 @@
             </audio>
         </div>
         <script>
-            // var settiingSecond = parseInt(window.prompt('Enter Second:'));
-            // if (isNaN(settiingSecond)) {
-            //     window.alert('Set Failed. Default Is 30s');
-            //     settiingSecond = 30;
-            // }
+            var settiingSecond = parseInt(window.prompt('Enter Second:'));
+            if (isNaN(settiingSecond)) {
+                window.alert('Set Failed. Default Is 30s');
+                settiingSecond = 30;
+            }
             initGlobal(30);
 
             function initGlobal(settiingSecond) {
@@ -156,6 +160,7 @@
                     if (timeObject.status != 1) { return false }
                     timeObject.startTime = new Date().getTime();
                     timeObject.opening = true;
+                    buttonEnd.classList.remove('stopping');
                 }
 
                 function ClickEndBtn() {
@@ -164,10 +169,12 @@
                         if (!audio_10s.paused) {
                             audio_10s.pause();
                         }
+                        buttonEnd.classList.add('stopping');
                     } else {
                         if (timeObject.status == 1) {
                             timeObject.startTime = new Date().getTime() - (timeObject.nowSecond * 1000);
                             timeObject.opening = true;
+                            buttonEnd.classList.remove('stopping');
                         } else {
                             timeObject.startTime = 0;
                             timeObject.status = 1;
@@ -204,6 +211,7 @@
                 }
 
                 function timeout() {
+                    buttonEnd.classList.add('stopping');
                     setTimerText('Timeout.');
                     timeObject.opening = false;
                     timeObject.status = 2;
@@ -211,6 +219,7 @@
                     audio_10s.pause();
                     audio_bomb.currentTime = 0;
                     audio_bomb.play();
+                    
                 }
             }
 
