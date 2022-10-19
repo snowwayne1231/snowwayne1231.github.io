@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta content="origin" name="referrer">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rummikub Timer</title>
+        <style>
+            body {
+                padding: 0px;
+                margin: 0px;
+                font-size: 80px;
+                text-align: center;
+                display: flex;
+                height: 100vh;
+                width: 100vw;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+            }
+            #global-bg {
+                position: relative;
+                background-color: #000;
+                height: 100%;
+                width: 100%;
+                padding: 2px;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            .flex-layer {
+                justify-content: center;
+                align-items: center;
+                text-align:center;
+                position: relative;
+                height: 20%;
+                display: flex;
+                flex-direction: column;
+            }
+            .layer-sub {
+                position: relative;
+                height: 20%;
+            }
+            .layer-sub .sub-box {
+                width: 20%;
+                text-align: center;
+                justify-content: center;
+                align-items: center;
+                justify-items: center;
+                display: flex;
+            }
+
+            .timer {
+                color: #35b178;
+                /* font-size: 48px; */
+            }
+            #timer-1 {
+                transform: rotate(180deg);
+            }
+            #timer-2 {
+                transform: rotate(90deg);
+            }
+            #timer-4 {
+                transform: rotate(270deg);
+            }
+
+            .layer-middle {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: 60%;
+            }
+
+            button {
+                color: #35b178;
+                background-color: #ccc;
+                font-size: 40px;
+                padding: 10px 80px;
+                border-radius: 15px;
+                margin: 0px auto;
+            }
+            audio {
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="global-bg">
+            <div class="flex-layer">
+                <button id="button-start-1">⭮</button>
+            </div>
+            <div class="flex-layer" style="height: 60%;">
+                <div class="layer-sub layer-top">
+                    <div class="timer" id="timer-1">0:00</div>
+                </div>
+                <div class="layer-sub layer-middle">
+                    <div class="sub-box">
+                        <div class="timer" id="timer-2">0:00</div>
+                    </div>
+                    <div class="sub-box" style="width: 60%;">
+                        <div class="stop"><button style="padding: 20px;" id="button-end">🛑▶</button></div>
+                    </div>
+                    <div class="sub-box">
+                        <div class="timer" id="timer-4">0:00</div>
+                    </div>
+                </div>
+                <div class="layer-sub layer-bottom">
+                    <div class="timer" id="timer-3">0:00</div>
+                </div>
+            </div>
+            <div class="flex-layer">
+                <button id="button-start-2">⭮</button>
+            </div>
+            <audio id="10s">
+                <source src="./10s.mp3" type="audio/mpeg">
+            </audio>
+            <audio id="bomb">
+                <source src="./bomb.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+        <script>
+            // var settiingSecond = parseInt(window.prompt('Enter Second:'));
+            // if (isNaN(settiingSecond)) {
+            //     window.alert('Set Failed. Default Is 30s');
+            //     settiingSecond = 30;
+            // }
+            initGlobal(30);
+
+            function initGlobal(settiingSecond) {
+                const timers = [1,2,3,4].map(i => {
+                    return document.getElementById('timer-' + String(i));
+                });
+                const buttonStarters = [1,2].map(i => {
+                    return document.getElementById('button-start-' + String(i));
+                });
+                const buttonEnd = document.getElementById('button-end');
+                const audio_10s = document.getElementById('10s');
+                const audio_bomb = document.getElementById('bomb');
+                audio_bomb.volume = 0.7;
+
+                const timeObject = {
+                    opening: false,
+                    startTime: 0,
+                    nowSecond: 0,
+                    maxSecond: settiingSecond,
+                    status: 1,
+                    interval: window.setInterval(showTime, 200),
+                }
+                
+                buttonStarters.map(btn => {
+                    btn.addEventListener('click', onClickStart);
+                });
+                buttonEnd.addEventListener('click', ClickEndBtn);
+                return {timers, buttonStarters, buttonEnd, timeObject}
+
+                function onClickStart() {
+                    if (timeObject.status != 1) { return false }
+                    timeObject.startTime = new Date().getTime();
+                    timeObject.opening = true;
+                }
+
+                function ClickEndBtn() {
+                    if (timeObject.opening) {
+                        timeObject.opening = false;
+                        if (!audio_10s.paused) {
+                            audio_10s.pause();
+                        }
+                    } else {
+                        if (timeObject.status == 1) {
+                            timeObject.startTime = new Date().getTime() - (timeObject.nowSecond * 1000);
+                            timeObject.opening = true;
+                        } else {
+                            timeObject.startTime = 0;
+                            timeObject.status = 1;
+                            timeObject.nowSecond = 0;
+                            setTimerText('0:00');
+                        }
+                    }
+                }
+
+                function setTimerText(innerText) {
+                    timers.map(timer => {
+                        timer.innerText = innerText;
+                    });
+                }
+
+                function showTime() {
+                    // console.log('showTime timeObject: ', timeObject);
+                    if (timeObject.opening == false) { return false }
+                    var now = new Date();
+                    var gap = now.getTime() - timeObject.startTime;
+                    var gapSecond = parseInt(gap / 1000);
+                    timeObject.nowSecond = gapSecond;
+                    if (gapSecond < timeObject.maxSecond) {
+                        var minuts = Math.floor(gapSecond / 60);
+                        var innerHtml = `${minuts}:${String(gapSecond).padStart(2,'0')}`;
+                        setTimerText(innerHtml);
+                        if (gapSecond >= (timeObject.maxSecond-10) && audio_10s.paused) {
+                            audio_10s.currentTime = 0;
+                            audio_10s.play();
+                        }
+                    } else {
+                        timeout();
+                    }
+                }
+
+                function timeout() {
+                    setTimerText('Timeout.');
+                    timeObject.opening = false;
+                    timeObject.status = 2;
+                    audio_10s.currentTime = 0;
+                    audio_10s.pause();
+                    audio_bomb.currentTime = 0;
+                    audio_bomb.play();
+                }
+            }
+
+        </script>
+    </body>
+    
+</html>
