@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Key Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f8f8; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    input[type="number"] { flex: 1; padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 16px; font-size: 1rem; border: none; background: #1976d2; color: #fff; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1565c0; }
+    .results { margin-top: 16px; }
+    .result-item { background: #f1f1f1; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+    .history-title { margin-top: 32px; font-size: 1.1em; color: #555; }
+    .history-list { margin: 0; padding: 0; list-style: none; }
+    .history-list li { font-size: 0.95em; color: #888; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-row">
+      <input id="keyCount" type="number" min="1" max="20" value="3" placeholder="請輸入要產生的組數 (1-20)">
+      <button id="genBtn">產生金鑰</button>
+    </div>
+    <div id="results" class="results"></div>
+    <!-- <div class="history-title">最近產生紀錄 (最多10筆):</div>
+    <ul id="history" class="history-list"></ul> -->
+  </div>
+  <script>
+// ====== MD5, getRandomNum, generateKeys ======
+function md5cycle(x, k) {
+    let [a, b, c, d] = x;
+    function ff(a, b, c, d, x, s, t) {
+        a = (a + ((b & c) | (~b & d)) + x + t) | 0;
+        return (((a << s) | (a >>> (32 - s))) + b) | 0;
+    }
+    function gg(a, b, c, d, x, s, t) {
+        a = (a + ((b & d) | (c & ~d)) + x + t) | 0;
+        return (((a << s) | (a >>> (32 - s))) + b) | 0;
+    }
+    function hh(a, b, c, d, x, s, t) {
+        a = (a + (b ^ c ^ d) + x + t) | 0;
+        return (((a << s) | (a >>> (32 - s))) + b) | 0;
+    }
+    function ii(a, b, c, d, x, s, t) {
+        a = (a + (c ^ (b | ~d)) + x + t) | 0;
+        return (((a << s) | (a >>> (32 - s))) + b) | 0;
+    }
+    a = ff(a, b, c, d, k[0], 7, -680876936);
+    d = ff(d, a, b, c, k[1], 12, -389564586);
+    c = ff(c, d, a, b, k[2], 17, 606105819);
+    b = ff(b, c, d, a, k[3], 22, -1044525330);
+    a = ff(a, b, c, d, k[4], 7, -176418897);
+    d = ff(d, a, b, c, k[5], 12, 1200080426);
+    c = ff(c, d, a, b, k[6], 17, -1473231341);
+    b = ff(b, c, d, a, k[7], 22, -45705983);
+    a = ff(a, b, c, d, k[8], 7, 1770035416);
+    d = ff(d, a, b, c, k[9], 12, -1958414417);
+    c = ff(c, d, a, b, k[10], 17, -42063);
+    b = ff(b, c, d, a, k[11], 22, -1990404162);
+    a = ff(a, b, c, d, k[12], 7, 1804603682);
+    d = ff(d, a, b, c, k[13], 12, -40341101);
+    c = ff(c, d, a, b, k[14], 17, -1502002290);
+    b = ff(b, c, d, a, k[15], 22, 1236535329);
+    a = gg(a, b, c, d, k[1], 5, -165796510);
+    d = gg(d, a, b, c, k[6], 9, -1069501632);
+    c = gg(c, d, a, b, k[11], 14, 643717713);
+    b = gg(b, c, d, a, k[0], 20, -373897302);
+    a = gg(a, b, c, d, k[5], 5, -701558691);
+    d = gg(d, a, b, c, k[10], 9, 38016083);
+    c = gg(c, d, a, b, k[15], 14, -660478335);
+    b = gg(b, c, d, a, k[4], 20, -405537848);
+    a = gg(a, b, c, d, k[9], 5, 568446438);
+    d = gg(d, a, b, c, k[14], 9, -1019803690);
+    c = gg(c, d, a, b, k[3], 14, -187363961);
+    b = gg(b, c, d, a, k[8], 20, 1163531501);
+    a = gg(a, b, c, d, k[13], 5, -1444681467);
+    d = gg(d, a, b, c, k[2], 9, -51403784);
+    c = gg(c, d, a, b, k[7], 14, 1735328473);
+    b = gg(b, c, d, a, k[12], 20, -1926607734);
+    a = hh(a, b, c, d, k[5], 4, -378558);
+    d = hh(d, a, b, c, k[8], 11, -2022574463);
+    c = hh(c, d, a, b, k[11], 16, 1839030562);
+    b = hh(b, c, d, a, k[14], 23, -35309556);
+    a = hh(a, b, c, d, k[1], 4, -1530992060);
+    d = hh(d, a, b, c, k[4], 11, 1272893353);
+    c = hh(c, d, a, b, k[7], 16, -155497632);
+    b = hh(b, c, d, a, k[10], 23, -1094730640);
+    a = hh(a, b, c, d, k[13], 4, 681279174);
+    d = hh(d, a, b, c, k[0], 11, -358537222);
+    c = hh(c, d, a, b, k[3], 16, -722521979);
+    b = hh(b, c, d, a, k[6], 23, 76029189);
+    a = hh(a, b, c, d, k[9], 4, -640364487);
+    d = hh(d, a, b, c, k[12], 11, -421815835);
+    c = hh(c, d, a, b, k[15], 16, 530742520);
+    b = hh(b, c, d, a, k[2], 23, -995338651);
+    a = ii(a, b, c, d, k[0], 6, -198630844);
+    d = ii(d, a, b, c, k[7], 10, 1126891415);
+    c = ii(c, d, a, b, k[14], 15, -1416354905);
+    b = ii(b, c, d, a, k[5], 21, -57434055);
+    a = ii(a, b, c, d, k[12], 6, 1700485571);
+    d = ii(d, a, b, c, k[3], 10, -1894986606);
+    c = ii(c, d, a, b, k[10], 15, -1051523);
+    b = ii(b, c, d, a, k[1], 21, -2054922799);
+    a = ii(a, b, c, d, k[8], 6, 1873313359);
+    d = ii(d, a, b, c, k[15], 10, -30611744);
+    c = ii(c, d, a, b, k[6], 15, -1560198380);
+    b = ii(b, c, d, a, k[13], 21, 1309151649);
+    a = ii(a, b, c, d, k[4], 6, -145523070);
+    d = ii(d, a, b, c, k[11], 10, -1120210379);
+    c = ii(c, d, a, b, k[2], 15, 718787259);
+    b = ii(b, c, d, a, k[9], 21, -343485551);
+    x[0] = (x[0] + a) | 0;
+    x[1] = (x[1] + b) | 0;
+    x[2] = (x[2] + c) | 0;
+    x[3] = (x[3] + d) | 0;
+}
+function md5blk(s) {
+    const md5blks = [];
+    for (let i = 0; i < 64; i += 4) {
+        md5blks[i >> 2] =
+            s.charCodeAt(i) +
+            (s.charCodeAt(i + 1) << 8) +
+            (s.charCodeAt(i + 2) << 16) +
+            (s.charCodeAt(i + 3) << 24);
+    }
+    return md5blks;
+}
+function md51(s) {
+    let n = s.length,
+        state = [1732584193, -271733879, -1732584194, 271733878],
+        i;
+    for (i = 64; i <= n; i += 64) {
+        md5cycle(state, md5blk(s.substring(i - 64, i)));
+    }
+    s = s.substring(i - 64);
+    const tail = Array(16).fill(0);
+    for (i = 0; i < s.length; i++)
+        tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+    tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+    if (i > 55) {
+        md5cycle(state, tail);
+        tail.fill(0);
+    }
+    tail[14] = n * 8;
+    md5cycle(state, tail);
+    return state;
+}
+function rhex(n) {
+    let s = '', j = 0;
+    for (; j < 4; j++)
+        s += ((n >> (j * 8 + 4)) & 0x0f).toString(16) + ((n >> (j * 8)) & 0x0f).toString(16);
+    return s;
+}
+function hex_md5(s) {
+    return md51(s).map(rhex).join('');
+}
+function getRandomNum(n) {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let res = '';
+    for (let i = 0; i < n; i++) {
+        const id = Math.floor(Math.random() * chars.length);
+        res += chars[id];
+    }
+    return res;
+}
+function generateKeys(count = 10) {
+    const results = [];
+    for (let i = 0; i < count; i++) {
+        let aesKey = getRandomNum(16);
+        let md5Key = getRandomNum(16);
+        const now = new Date();
+        const utc8 = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        const nowTime = utc8.toISOString().replace('T', ' ').substring(0, 19);
+        const nowTimesJc = utc8.getTime();
+        aesKey = hex_md5(aesKey + nowTimesJc + 'Deskey').toUpperCase().substring(8, 24);
+        md5Key = hex_md5(md5Key + nowTimesJc + 'Md5key').toUpperCase().substring(8, 24);
+        results.push({ aesKey, md5Key, nowTime, nowTimesJc });
+    }
+    return results;
+}
+// ====== UI & localStorage ======
+const keyCountInput = document.getElementById('keyCount');
+const genBtn = document.getElementById('genBtn');
+const resultsDiv = document.getElementById('results');
+const historyUl = document.getElementById('history');
+const HISTORY_KEY = 'gkey_history';
+function renderResults(arr) {
+  resultsDiv.innerHTML = arr.map((item, idx) => `
+    <div class="result-item">
+      <b>第 ${idx + 1} 組</b><br>
+      aesKey: <code>${item.aesKey}</code><br>
+      md5Key: <code>${item.md5Key}</code><br>
+      時間: <code>${item.nowTime}</code><br>
+    </div>
+  `).join('');
+}
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  historyUl.innerHTML = history.map((h, i) =>
+    `<li>第${i+1}次: ${h.length}組, ${h[0]?.nowTime || ''}</li>`
+  ).join('');
+}
+function saveHistory(arr) {
+  let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  history.unshift(arr);
+  if (history.length > 10) history = history.slice(0, 10);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+genBtn.addEventListener('click', () => {
+  let n = parseInt(keyCountInput.value, 10);
+  if (isNaN(n) || n < 1) n = 1;
+  if (n > 20) n = 20;
+  const arr = generateKeys(n);
+  renderResults(arr);
+  saveHistory(arr);
+//   renderHistory();
+});
+// renderHistory();
+  </script>
+</body>
+</html>
