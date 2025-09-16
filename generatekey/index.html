@@ -16,14 +16,18 @@
     .history-title { margin-top: 32px; font-size: 1.1em; color: #555; }
     .history-list { margin: 0; padding: 0; list-style: none; }
     .history-list li { font-size: 0.95em; color: #888; margin-bottom: 4px; }
+    label { color: #666; display: block; }
   </style>
 </head>
 <body>
   <div class="container">
+    
     <div class="input-row">
-      <input id="keyCount" type="number" min="1" max="20" value="3" placeholder="請輸入要產生的組數 (1-20)">
+  <input id="keyCount" type="number" min="1" value="3" placeholder="請輸入要產生的組數">
       <button id="genBtn">產生金鑰</button>
     </div>
+    <div class="row"><label>輸入1~10在頁面上產生靜態金鑰。</label></div>
+    <div class="row"><label>輸入10以上的金鑰組數，則會下載CSV檔案。</label></div>
     <div id="results" class="results"></div>
     <!-- <div class="history-title">最近產生紀錄 (最多10筆):</div>
     <ul id="history" class="history-list"></ul> -->
@@ -167,26 +171,32 @@ function getRandomNum(n) {
     return res;
 }
 function generateKeys(count = 10) {
-    const results = [];
-    for (let i = 0; i < count; i++) {
-        let aesKey = getRandomNum(16);
-        let md5Key = getRandomNum(16);
-        const now = new Date();
-        const utc8 = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-        const nowTime = utc8.toISOString().replace('T', ' ').substring(0, 19);
-        const nowTimesJc = utc8.getTime();
-        aesKey = hex_md5(aesKey + nowTimesJc + 'Deskey').toUpperCase().substring(8, 24);
-        md5Key = hex_md5(md5Key + nowTimesJc + 'Md5key').toUpperCase().substring(8, 24);
-        results.push({ aesKey, md5Key, nowTime, nowTimesJc });
+  const results = [];
+  const keySet = new Set();
+  let tryCount = 0;
+  while (results.length < count) {
+    let aesKey = getRandomNum(16);
+    let md5Key = getRandomNum(16);
+    const now = new Date();
+    const utc8 = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const nowTime = utc8.toISOString().replace('T', ' ').substring(0, 19);
+    const nowTimesJc = utc8.getTime() + results.length; // 增加唯一性
+    aesKey = hex_md5(aesKey + nowTimesJc + 'Deskey').toUpperCase().substring(8, 24);
+    md5Key = hex_md5(md5Key + nowTimesJc + 'Md5key').toUpperCase().substring(8, 24);
+    const keyCombo = aesKey + '-' + md5Key;
+    if (!keySet.has(keyCombo)) {
+      results.push({ aesKey, md5Key, nowTime, nowTimesJc });
+      keySet.add(keyCombo);
     }
-    return results;
+    tryCount++;
+    if (tryCount > count * 10) break; // 防止極端情況死循環
+  }
+  return results;
 }
 // ====== UI & localStorage ======
 const keyCountInput = document.getElementById('keyCount');
 const genBtn = document.getElementById('genBtn');
 const resultsDiv = document.getElementById('results');
-const historyUl = document.getElementById('history');
-const HISTORY_KEY = 'gkey_history';
 function renderResults(arr) {
   resultsDiv.innerHTML = arr.map((item, idx) => `
     <div class="result-item">
@@ -197,28 +207,33 @@ function renderResults(arr) {
     </div>
   `).join('');
 }
-function renderHistory() {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-  historyUl.innerHTML = history.map((h, i) =>
-    `<li>第${i+1}次: ${h.length}組, ${h[0]?.nowTime || ''}</li>`
-  ).join('');
+
+function downloadCSV(arr) {
+  const header = ['aesKey', 'md5Key', 'nowTime'];
+  const rows = arr.map(item => [item.aesKey, item.md5Key, item.nowTime]);
+  let csvContent = header.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'keys.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
-function saveHistory(arr) {
-  let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-  history.unshift(arr);
-  if (history.length > 10) history = history.slice(0, 10);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-}
+
 genBtn.addEventListener('click', () => {
   let n = parseInt(keyCountInput.value, 10);
   if (isNaN(n) || n < 1) n = 1;
-  if (n > 20) n = 20;
   const arr = generateKeys(n);
-  renderResults(arr);
-  saveHistory(arr);
-//   renderHistory();
+  if (n > 10) {
+    downloadCSV(arr);
+    resultsDiv.innerHTML = `<div>已下載 ${n} 組金鑰的 CSV 檔案。</div>`;
+  } else {
+    renderResults(arr);
+  }
 });
-// renderHistory();
   </script>
 </body>
 </html>
