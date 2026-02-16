@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日文學習 - 五十音挑戰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .main-btn {
+            padding: 20px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .main-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .main-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .hiragana-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .katakana-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .vocab-btn {
+            background: #9E9E9E;
+            color: white;
+        }
+        
+        .leaderboard-btn {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .stage-select, .game-screen, .leaderboard-screen {
+            display: none;
+        }
+        
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stage-btn {
+            padding: 20px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+        
+        .stage-btn:hover:not(:disabled) {
+            background: #f0f0f0;
+            border-color: #4CAF50;
+        }
+        
+        .stage-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .stage-btn.completed {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .timer, .score {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .question {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .kana-display {
+            font-size: 80px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .option-btn {
+            padding: 30px;
+            font-size: 24px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+        
+        .option-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .option-btn.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .option-btn.wrong {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        
+        .result-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result-message.show {
+            display: block;
+        }
+        
+        .result-message.success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .result-message.fail {
+            background: #f44336;
+            color: white;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .leaderboard-table th {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .leaderboard-table tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>日文學習 - 五十音挑戰</h1>
+        
+        <!-- 主選單 -->
+        <div class="main-menu" id="mainMenu">
+            <button class="main-btn hiragana-btn" onclick="openStageSelect(1)">第一大關 - 平假名挑戰</button>
+            <button class="main-btn katakana-btn" id="katakanaBtn" onclick="openStageSelect(2)" disabled>第二大關 - 片假名挑戰</button>
+            <button class="main-btn vocab-btn" disabled>第三大關 - 單詞挑戰（即將開放）</button>
+            <button class="main-btn leaderboard-btn" onclick="showLeaderboard()">排行榜</button>
+        </div>
+        
+        <!-- 關卡選擇 -->
+        <div class="stage-select" id="stageSelect">
+            <button class="back-btn" onclick="backToMain()">返回主選單</button>
+            <h2 id="stageSelectTitle">選擇小關卡</h2>
+            <div class="stage-grid" id="stageGrid"></div>
+        </div>
+        
+        <!-- 遊戲畫面 -->
+        <div class="game-screen" id="gameScreen">
+            <button class="back-btn" onclick="backToStageSelect()">返回關卡選擇</button>
+            <div class="game-header">
+                <div class="timer">時間: <span id="timer">0</span>s</div>
+                <div class="score">正確: <span id="correct">0</span>/<span id="total">0</span></div>
+            </div>
+            <div class="question">
+                <div class="kana-display" id="kanaDisplay">あ</div>
+            </div>
+            <div class="options" id="options"></div>
+            <div class="result-message" id="resultMessage"></div>
+        </div>
+        
+        <!-- 排行榜 -->
+        <div class="leaderboard-screen" id="leaderboardScreen">
+            <button class="back-btn" onclick="backToMain()">返回主選單</button>
+            <h2>排行榜 - 最速通關紀錄</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>大關</th>
+                        <th>小關</th>
+                        <th>最速時間</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 日文五十音數據
+        const hiraganaData = [
+            {char: 'あ', romaji: 'a'}, {char: 'い', romaji: 'i'}, {char: 'う', romaji: 'u'}, {char: 'え', romaji: 'e'}, {char: 'お', romaji: 'o'},
+            {char: 'か', romaji: 'ka'}, {char: 'き', romaji: 'ki'}, {char: 'く', romaji: 'ku'}, {char: 'け', romaji: 'ke'}, {char: 'こ', romaji: 'ko'},
+            {char: 'さ', romaji: 'sa'}, {char: 'し', romaji: 'shi'}, {char: 'す', romaji: 'su'}, {char: 'せ', romaji: 'se'}, {char: 'そ', romaji: 'so'},
+            {char: 'た', romaji: 'ta'}, {char: 'ち', romaji: 'chi'}, {char: 'つ', romaji: 'tsu'}, {char: 'て', romaji: 'te'}, {char: 'と', romaji: 'to'},
+            {char: 'な', romaji: 'na'}, {char: 'に', romaji: 'ni'}, {char: 'ぬ', romaji: 'nu'}, {char: 'ね', romaji: 'ne'}, {char: 'の', romaji: 'no'},
+            {char: 'は', romaji: 'ha'}, {char: 'ひ', romaji: 'hi'}, {char: 'ふ', romaji: 'fu'}, {char: 'へ', romaji: 'he'}, {char: 'ほ', romaji: 'ho'},
+            {char: 'ま', romaji: 'ma'}, {char: 'み', romaji: 'mi'}, {char: 'む', romaji: 'mu'}, {char: 'め', romaji: 'me'}, {char: 'も', romaji: 'mo'},
+            {char: 'や', romaji: 'ya'}, {char: 'ゆ', romaji: 'yu'}, {char: 'よ', romaji: 'yo'},
+            {char: 'ら', romaji: 'ra'}, {char: 'り', romaji: 'ri'}, {char: 'る', romaji: 'ru'}, {char: 'れ', romaji: 're'}, {char: 'ろ', romaji: 'ro'},
+            {char: 'わ', romaji: 'wa'}, {char: 'を', romaji: 'wo'}, {char: 'ん', romaji: 'n'},
+            {char: 'が', romaji: 'ga'}, {char: 'ぎ', romaji: 'gi'}, {char: 'ぐ', romaji: 'gu'}, {char: 'げ', romaji: 'ge'}, {char: 'ご', romaji: 'go'},
+            {char: 'ざ', romaji: 'za'}, {char: 'じ', romaji: 'ji'}, {char: 'ず', romaji: 'zu'}, {char: 'ぜ', romaji: 'ze'}, {char: 'ぞ', romaji: 'zo'},
+            {char: 'だ', romaji: 'da'}, {char: 'ぢ', romaji: 'ji'}, {char: 'づ', romaji: 'zu'}, {char: 'で', romaji: 'de'}, {char: 'ど', romaji: 'do'},
+            {char: 'ば', romaji: 'ba'}, {char: 'び', romaji: 'bi'}, {char: 'ぶ', romaji: 'bu'}, {char: 'べ', romaji: 'be'}, {char: 'ぼ', romaji: 'bo'},
+            {char: 'ぱ', romaji: 'pa'}, {char: 'ぴ', romaji: 'pi'}, {char: 'ぷ', romaji: 'pu'}, {char: 'ぺ', romaji: 'pe'}, {char: 'ぽ', romaji: 'po'}
+        ];
+        
+        const katakanaData = [
+            {char: 'ア', romaji: 'a', hiragana: 'あ'}, {char: 'イ', romaji: 'i', hiragana: 'い'}, {char: 'ウ', romaji: 'u', hiragana: 'う'}, {char: 'エ', romaji: 'e', hiragana: 'え'}, {char: 'オ', romaji: 'o', hiragana: 'お'},
+            {char: 'カ', romaji: 'ka', hiragana: 'か'}, {char: 'キ', romaji: 'ki', hiragana: 'き'}, {char: 'ク', romaji: 'ku', hiragana: 'く'}, {char: 'ケ', romaji: 'ke', hiragana: 'け'}, {char: 'コ', romaji: 'ko', hiragana: 'こ'},
+            {char: 'サ', romaji: 'sa', hiragana: 'さ'}, {char: 'シ', romaji: 'shi', hiragana: 'し'}, {char: 'ス', romaji: 'su', hiragana: 'す'}, {char: 'セ', romaji: 'se', hiragana: 'せ'}, {char: 'ソ', romaji: 'so', hiragana: 'そ'},
+            {char: 'タ', romaji: 'ta', hiragana: 'た'}, {char: 'チ', romaji: 'chi', hiragana: 'ち'}, {char: 'ツ', romaji: 'tsu', hiragana: 'つ'}, {char: 'テ', romaji: 'te', hiragana: 'て'}, {char: 'ト', romaji: 'to', hiragana: 'と'},
+            {char: 'ナ', romaji: 'na', hiragana: 'な'}, {char: 'ニ', romaji: 'ni', hiragana: 'に'}, {char: 'ヌ', romaji: 'nu', hiragana: 'ぬ'}, {char: 'ネ', romaji: 'ne', hiragana: 'ね'}, {char: 'ノ', romaji: 'no', hiragana: 'の'},
+            {char: 'ハ', romaji: 'ha', hiragana: 'は'}, {char: 'ヒ', romaji: 'hi', hiragana: 'ひ'}, {char: 'フ', romaji: 'fu', hiragana: 'ふ'}, {char: 'ヘ', romaji: 'he', hiragana: 'へ'}, {char: 'ホ', romaji: 'ho', hiragana: 'ほ'},
+            {char: 'マ', romaji: 'ma', hiragana: 'ま'}, {char: 'ミ', romaji: 'mi', hiragana: 'み'}, {char: 'ム', romaji: 'mu', hiragana: 'む'}, {char: 'メ', romaji: 'me', hiragana: 'め'}, {char: 'モ', romaji: 'mo', hiragana: 'も'},
+            {char: 'ヤ', romaji: 'ya', hiragana: 'や'}, {char: 'ユ', romaji: 'yu', hiragana: 'ゆ'}, {char: 'ヨ', romaji: 'yo', hiragana: 'よ'},
+            {char: 'ラ', romaji: 'ra', hiragana: 'ら'}, {char: 'リ', romaji: 'ri', hiragana: 'り'}, {char: 'ル', romaji: 'ru', hiragana: 'る'}, {char: 'レ', romaji: 're', hiragana: 'れ'}, {char: 'ロ', romaji: 'ro', hiragana: 'ろ'},
+            {char: 'ワ', romaji: 'wa', hiragana: 'わ'}, {char: 'ヲ', romaji: 'wo', hiragana: 'を'}, {char: 'ン', romaji: 'n', hiragana: 'ん'},
+            {char: 'ガ', romaji: 'ga', hiragana: 'が'}, {char: 'ギ', romaji: 'gi', hiragana: 'ぎ'}, {char: 'グ', romaji: 'gu', hiragana: 'ぐ'}, {char: 'ゲ', romaji: 'ge', hiragana: 'げ'}, {char: 'ゴ', romaji: 'go', hiragana: 'ご'},
+            {char: 'ザ', romaji: 'za', hiragana: 'ざ'}, {char: 'ジ', romaji: 'ji', hiragana: 'じ'}, {char: 'ズ', romaji: 'zu', hiragana: 'ず'}, {char: 'ゼ', romaji: 'ze', hiragana: 'ぜ'}, {char: 'ゾ', romaji: 'zo', hiragana: 'ぞ'},
+            {char: 'ダ', romaji: 'da', hiragana: 'だ'}, {char: 'ヂ', romaji: 'ji', hiragana: 'ぢ'}, {char: 'ヅ', romaji: 'zu', hiragana: 'づ'}, {char: 'デ', romaji: 'de', hiragana: 'で'}, {char: 'ド', romaji: 'do', hiragana: 'ど'},
+            {char: 'バ', romaji: 'ba', hiragana: 'ば'}, {char: 'ビ', romaji: 'bi', hiragana: 'び'}, {char: 'ブ', romaji: 'bu', hiragana: 'ぶ'}, {char: 'ベ', romaji: 'be', hiragana: 'べ'}, {char: 'ボ', romaji: 'bo', hiragana: 'ぼ'},
+            {char: 'パ', romaji: 'pa', hiragana: 'ぱ'}, {char: 'ピ', romaji: 'pi', hiragana: 'ぴ'}, {char: 'プ', romaji: 'pu', hiragana: 'ぷ'}, {char: 'ペ', romaji: 'pe', hiragana: 'ぺ'}, {char: 'ポ', romaji: 'po', hiragana: 'ぽ'}
+        ];
+        
+        let currentBigStage = 1;
+        let currentSmallStage = 1;
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let totalQuestions = 0;
+        let timer = 0;
+        let timerInterval = null;
+        let questions = [];
+        let isAnswering = false;
+        
+        // 初始化
+        function init() {
+            checkKatakanaUnlock();
+        }
+        
+        // 檢查第二大關是否解鎖
+        function checkKatakanaUnlock() {
+            let allCompleted = true;
+            for (let i = 1; i <= 10; i++) {
+                const record = localStorage.getItem(`stage_1_${i}`);
+                if (!record) {
+                    allCompleted = false;
+                    break;
+                }
+            }
+            document.getElementById('katakanaBtn').disabled = !allCompleted;
+        }
+        
+        // 打開關卡選擇
+        function openStageSelect(bigStage) {
+            currentBigStage = bigStage;
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('stageSelect').style.display = 'block';
+            
+            const title = bigStage === 1 ? '平假名挑戰 - 選擇小關卡' : '片假名挑戰 - 選擇小關卡';
+            document.getElementById('stageSelectTitle').textContent = title;
+            
+            renderStageGrid();
+        }
+        
+        // 渲染關卡網格
+        function renderStageGrid() {
+            const grid = document.getElementById('stageGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'stage-btn';
+                
+                const kanaCount = 15 + (i - 1) * 5;
+                const timeLimit = kanaCount * 2;
+                const record = localStorage.getItem(`stage_${currentBigStage}_${i}`);
+                
+                btn.innerHTML = `小關 ${i}<br>${kanaCount}個假名<br>限時 ${timeLimit}秒`;
+                
+                if (record) {
+                    btn.classList.add('completed');
+                    btn.innerHTML += `<br>✓ ${record}秒`;
+                }
+                
+                // 檢查是否解鎖
+                if (i === 1 || localStorage.getItem(`stage_${currentBigStage}_${i-1}`)) {
+                    btn.onclick = () => startGame(i);
+                } else {
+                    btn.disabled = true;
+                }
+                
+                grid.appendChild(btn);
+            }
+        }
+        
+        // 開始遊戲
+        function startGame(smallStage) {
+            currentSmallStage = smallStage;
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            timer = 0;
+            
+            document.getElementById('stageSelect').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // 生成題目
+            generateQuestions();
+            
+            totalQuestions = questions.length;
+            document.getElementById('total').textContent = totalQuestions;
+            document.getElementById('correct').textContent = correctAnswers;
+            
+            // 開始計時
+            startTimer();
+            
+            // 顯示第一題
+            showQuestion();
+        }
+        
+        // 生成題目
+        function generateQuestions() {
+            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const data = currentBigStage === 1 ? hiraganaData : katakanaData;
+            const availableKana = data.slice(0, kanaCount);
+            
+            questions = [];
+            
+            // 確保每個假名至少出現一次
+            availableKana.forEach(kana => {
+                questions.push({...kana});
+            });
+            
+            // 隨機補齊到kanaCount個題目
+            while (questions.length < kanaCount) {
+                const randomKana = availableKana[Math.floor(Math.random() * availableKana.length)];
+                questions.push({...randomKana});
+            }
+            
+            // 打亂題目順序
+            shuffleArray(questions);
+        }
+        
+        // 顯示題目
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame(true);
+                return;
+            }
+            
+            isAnswering = true;
+            const question = questions[currentQuestionIndex];
+            document.getElementById('kanaDisplay').textContent = question.char;
+            document.getElementById('resultMessage').classList.remove('show');
+            
+            // 生成選項
+            generateOptions(question);
+        }
+        
+        // 生成選項
+        function generateOptions(correctQuestion) {
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            const data = currentBigStage === 1 ? hiraganaData : katakanaData;
+            const options = [correctQuestion];
+            
+            // 對於片假名，隨機決定選項類型（平假名或羅馬拼音）
+            const useHiragana = currentBigStage === 2 && Math.random() > 0.5;
+            
+            // 生成3個錯誤選項
+            while (options.length < 4) {
+                const randomKana = data[Math.floor(Math.random() * data.length)];
+                if (randomKana.romaji !== correctQuestion.romaji) {
+                    options.push(randomKana);
+                }
+            }
+            
+            shuffleArray(options);
+            
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                
+                if (currentBigStage === 1) {
+                    btn.textContent = option.romaji;
+                } else {
+                    btn.textContent = useHiragana ? option.hiragana : option.romaji;
+                }
+                
+                btn.onclick = () => checkAnswer(option, correctQuestion, btn);
+                optionsDiv.appendChild(btn);
+            });
+        }
+        
+        // 檢查答案
+        function checkAnswer(selected, correct, btn) {
+            if (!isAnswering) return;
+            isAnswering = false;
+            
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach(b => b.style.pointerEvents = 'none');
+            
+            if (selected.romaji === correct.romaji) {
+                btn.classList.add('correct');
+                correctAnswers++;
+                document.getElementById('correct').textContent = correctAnswers;
+                
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    showQuestion();
+                    optionBtns.forEach(b => b.style.pointerEvents = 'auto');
+                }, 500);
+            } else {
+                btn.classList.add('wrong');
+                
+                // 顯示正確答案
+                optionBtns.forEach(b => {
+                    const btnText = b.textContent;
+                    if (currentBigStage === 1) {
+                        if (btnText === correct.romaji) {
+                            b.classList.add('correct');
+                        }
+                    } else {
+                        if (btnText === correct.romaji || btnText === correct.hiragana) {
+                            b.classList.add('correct');
+                        }
+                    }
+                });
+                
+                const resultMsg = document.getElementById('resultMessage');
+                resultMsg.textContent = `錯誤！正確答案是：${correct.romaji}`;
+                resultMsg.className = 'result-message fail show';
+                
+                // 等待點擊繼續
+                setTimeout(() => {
+                    const continueBtn = document.createElement('button');
+                    continueBtn.textContent = '點擊繼續';
+                    continueBtn.style.marginTop = '10px';
+                    continueBtn.style.padding = '10px 30px';
+                    continueBtn.style.fontSize = '18px';
+                    continueBtn.style.cursor = 'pointer';
+                    continueBtn.onclick = () => {
+                        endGame(false);
+                    };
+                    resultMsg.appendChild(document.createElement('br'));
+                    resultMsg.appendChild(continueBtn);
+                }, 500);
+            }
+        }
+        
+        // 開始計時
+        function startTimer() {
+            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const timeLimit = kanaCount * 2;
+            
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = timer;
+                
+                if (timer >= timeLimit) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+        
+        // 結束遊戲
+        function endGame(success) {
+            clearInterval(timerInterval);
+            
+            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const timeLimit = kanaCount * 2;
+            const accuracy = (correctAnswers / totalQuestions * 100).toFixed(0);
+            
+            if (success && correctAnswers === totalQuestions && timer < timeLimit) {
+                // 挑戰成功
+                const key = `stage_${currentBigStage}_${currentSmallStage}`;
+                const oldRecord = localStorage.getItem(key);
+                
+                if (!oldRecord || timer < parseInt(oldRecord)) {
+                    localStorage.setItem(key, timer.toString());
+                }
+                
+                const resultMsg = document.getElementById('resultMessage');
+                resultMsg.innerHTML = `
+                    <strong>恭喜通關！</strong><br>
+                    用時：${timer}秒<br>
+                    正確率：${accuracy}%<br>
+                    <button onclick="backToStageSelect()" style="margin-top:10px;padding:10px 30px;font-size:18px;cursor:pointer;">返回關卡選擇</button>
+                `;
+                resultMsg.className = 'result-message success show';
+                
+                checkKatakanaUnlock();
+            } else {
+                // 挑戰失敗
+                const resultMsg = document.getElementById('resultMessage');
+                let reason = '';
+                if (correctAnswers !== totalQuestions) {
+                    reason = `正確率未達100% (${accuracy}%)`;
+                } else if (timer >= timeLimit) {
+                    reason = '超過時間限制';
+                }
+                
+                resultMsg.innerHTML = `
+                    <strong>挑戰失敗！</strong><br>
+                    ${reason}<br>
+                    用時：${timer}秒 / ${timeLimit}秒<br>
+                    正確率：${accuracy}%<br>
+                    <button onclick="startGame(${currentSmallStage})" style="margin:10px 10px 0 0;padding:10px 30px;font-size:18px;cursor:pointer;">重新挑戰</button>
+                    <button onclick="backToStageSelect()" style="margin-top:10px;padding:10px 30px;font-size:18px;cursor:pointer;">返回關卡選擇</button>
+                `;
+                resultMsg.className = 'result-message fail show';
+            }
+        }
+        
+        // 返回關卡選擇
+        function backToStageSelect() {
+            clearInterval(timerInterval);
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('stageSelect').style.display = 'block';
+            renderStageGrid();
+        }
+        
+        // 返回主選單
+        function backToMain() {
+            document.getElementById('stageSelect').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+            checkKatakanaUnlock();
+        }
+        
+        // 顯示排行榜
+        function showLeaderboard() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'block';
+            
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            
+            for (let bigStage = 1; bigStage <= 2; bigStage++) {
+                for (let smallStage = 1; smallStage <= 10; smallStage++) {
+                    const record = localStorage.getItem(`stage_${bigStage}_${smallStage}`);
+                    if (record) {
+                        const row = tbody.insertRow();
+                        row.insertCell(0).textContent = bigStage === 1 ? '平假名' : '片假名';
+                        row.insertCell(1).textContent = `小關 ${smallStage}`;
+                        row.insertCell(2).textContent = `${record} 秒`;
+                    }
+                }
+            }
+            
+            if (tbody.rows.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 3;
+                cell.textContent = '尚無紀錄';
+                cell.style.textAlign = 'center';
+            }
+        }
+        
+        // 工具函數：打亂陣列
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        // 頁面載入時初始化
+        init();
+    </script>
+</body>
+</html>
