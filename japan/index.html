@@ -231,6 +231,74 @@
         .leaderboard-table tr:hover {
             background: #f5f5f5;
         }
+        
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .modal-backdrop.show {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal h3 {
+            margin-bottom: 10px;
+        }
+        .modal .actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .modal .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .modal .btn-primary {
+            background: #4CAF50;
+            color: #fff;
+        }
+        .modal .btn-secondary {
+            background: #666;
+            color: #fff;
+        }
+        .hidden {
+            display: none !important;
+        }
+        
+        .confetti-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 14px;
+            opacity: 0.9;
+            animation: confetti-fall 1.8s linear forwards;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); }
+            100% { transform: translateY(110vh) rotate(540deg); }
+        }
     </style>
 </head>
 <body>
@@ -281,7 +349,33 @@
                 <tbody id="leaderboardBody"></tbody>
             </table>
         </div>
+
+        <!-- 失敗彈窗 -->
+        <div class="modal-backdrop" id="failModal">
+            <div class="modal">
+                <h3 id="failTitle">提示</h3>
+                <div id="failMessage"></div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="retryBtn">確定</button>
+                    <button class="btn btn-secondary" id="backBtn">返回關卡選擇</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成功彈窗 -->
+        <div class="modal-backdrop" id="successModal">
+            <div class="modal">
+                <h3 id="successTitle">恭喜挑戰成功！</h3>
+                <div id="successMessage"></div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="successHomeBtn">回到首頁</button>
+                    <button class="btn btn-secondary" id="successStageBtn">回到關卡選擇</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="confetti-container" id="confetti"></div>
 
     <script>
         // 日文五十音數據
@@ -330,6 +424,89 @@
         let timerInterval = null;
         let questions = [];
         let isAnswering = false;
+        let gameEnded = false;
+
+        // ========== 彩窗函式 ==========
+        function showModal({ title, messageHtml, primaryText, secondaryText, onPrimary, onSecondary, lockGame }) {
+            if (lockGame) {
+                clearInterval(timerInterval);
+                gameEnded = true;
+            }
+            document.getElementById('failTitle').textContent = title || '提示';
+            document.getElementById('failMessage').innerHTML = messageHtml || '';
+
+            const primaryBtn = document.getElementById('retryBtn');
+            const secondaryBtn = document.getElementById('backBtn');
+
+            primaryBtn.textContent = primaryText || '確定';
+            primaryBtn.onclick = onPrimary || (() => hideModal());
+
+            if (secondaryText) {
+                secondaryBtn.textContent = secondaryText;
+                secondaryBtn.classList.remove('hidden');
+                secondaryBtn.onclick = onSecondary || (() => hideModal());
+            } else {
+                secondaryBtn.classList.add('hidden');
+            }
+
+            document.getElementById('failModal').classList.add('show');
+        }
+
+        function hideModal() {
+            document.getElementById('failModal').classList.remove('show');
+        }
+
+        function showSuccessModal({ time, accuracy, unlockedNext }) {
+            triggerConfetti();
+
+            const msgParts = [
+                `🎉 太棒了！`,
+                `用時：${time}秒`,
+                `正確率：${accuracy}%`,
+                unlockedNext ? '🔓 已解鎖新關卡！' : ''
+            ].filter(Boolean);
+
+            document.getElementById('successMessage').innerHTML = msgParts.join('<br>');
+            document.getElementById('successModal').classList.add('show');
+
+            document.getElementById('successHomeBtn').onclick = () => {
+                hideSuccessModal();
+                backToMain();
+            };
+            document.getElementById('successStageBtn').onclick = () => {
+                hideSuccessModal();
+                backToStageSelect();
+            };
+        }
+
+        function hideSuccessModal() {
+            document.getElementById('successModal').classList.remove('show');
+            clearConfetti();
+        }
+
+        function triggerConfetti() {
+            const container = document.getElementById('confetti');
+            clearConfetti();
+
+            const colors = ['#ff5252', '#ff9800', '#ffeb3b', '#4caf50', '#2196f3', '#9c27b0'];
+            const count = 80;
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay = (Math.random() * 0.3) + 's';
+                container.appendChild(piece);
+            }
+
+            setTimeout(clearConfetti, 2500);
+        }
+
+        function clearConfetti() {
+            document.getElementById('confetti').innerHTML = '';
+        }
+        // ========== 彩窗函式結束 ==========
         
         // 初始化
         function init() {
@@ -398,6 +575,9 @@
             currentQuestionIndex = 0;
             correctAnswers = 0;
             timer = 0;
+            gameEnded = false;
+            hideFailModal();
+            hideSuccessModal();
             
             document.getElementById('stageSelect').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
@@ -493,13 +673,14 @@
         
         // 檢查答案
         function checkAnswer(selected, correct, btn) {
-            if (!isAnswering) return;
+            if (!isAnswering || gameEnded) return;
             isAnswering = false;
-            
+
             const optionBtns = document.querySelectorAll('.option-btn');
             optionBtns.forEach(b => b.style.pointerEvents = 'none');
-            
+
             if (selected.romaji === correct.romaji) {
+                // 正確
                 btn.classList.add('correct');
                 correctAnswers++;
                 document.getElementById('correct').textContent = correctAnswers;
@@ -510,40 +691,31 @@
                     optionBtns.forEach(b => b.style.pointerEvents = 'auto');
                 }, 500);
             } else {
+                // 答錯
                 btn.classList.add('wrong');
-                
-                // 顯示正確答案
+
                 optionBtns.forEach(b => {
                     const btnText = b.textContent;
                     if (currentBigStage === 1) {
-                        if (btnText === correct.romaji) {
-                            b.classList.add('correct');
-                        }
+                        if (btnText === correct.romaji) b.classList.add('correct');
                     } else {
-                        if (btnText === correct.romaji || btnText === correct.hiragana) {
-                            b.classList.add('correct');
-                        }
+                        if (btnText === correct.romaji || btnText === correct.hiragana) b.classList.add('correct');
                     }
                 });
-                
-                const resultMsg = document.getElementById('resultMessage');
-                resultMsg.textContent = `錯誤！正確答案是：${correct.romaji}`;
-                resultMsg.className = 'result-message fail show';
-                
-                // 等待點擊繼續
-                setTimeout(() => {
-                    const continueBtn = document.createElement('button');
-                    continueBtn.textContent = '點擊繼續';
-                    continueBtn.style.marginTop = '10px';
-                    continueBtn.style.padding = '10px 30px';
-                    continueBtn.style.fontSize = '18px';
-                    continueBtn.style.cursor = 'pointer';
-                    continueBtn.onclick = () => {
-                        endGame(false);
-                    };
-                    resultMsg.appendChild(document.createElement('br'));
-                    resultMsg.appendChild(continueBtn);
-                }, 500);
+
+                showModal({
+                    title: '答錯了',
+                    messageHtml: `正確答案是：${correct.romaji}`,
+                    primaryText: '繼續',
+                    secondaryText: null,
+                    lockGame: false,
+                    onPrimary: () => {
+                        hideModal();
+                        currentQuestionIndex++;
+                        showQuestion();
+                        optionBtns.forEach(b => b.style.pointerEvents = 'auto');
+                    }
+                });
             }
         }
         
@@ -553,18 +725,21 @@
             const timeLimit = kanaCount * 2;
             
             timerInterval = setInterval(() => {
+                if (gameEnded) return;
                 timer++;
                 document.getElementById('timer').textContent = timer;
-                
+
                 if (timer >= timeLimit) {
-                    endGame(false);
+                    showFailModal('超過時間限制');
                 }
             }, 1000);
         }
         
         // 結束遊戲
         function endGame(success) {
+            if (gameEnded) return;
             clearInterval(timerInterval);
+            gameEnded = true;
             
             const kanaCount = 15 + (currentSmallStage - 1) * 5;
             const timeLimit = kanaCount * 2;
@@ -574,46 +749,63 @@
                 // 挑戰成功
                 const key = `stage_${currentBigStage}_${currentSmallStage}`;
                 const oldRecord = localStorage.getItem(key);
-                
+
                 if (!oldRecord || timer < parseInt(oldRecord)) {
                     localStorage.setItem(key, timer.toString());
                 }
-                
-                const resultMsg = document.getElementById('resultMessage');
-                resultMsg.innerHTML = `
-                    <strong>恭喜通關！</strong><br>
-                    用時：${timer}秒<br>
-                    正確率：${accuracy}%<br>
-                    <button onclick="backToStageSelect()" style="margin-top:10px;padding:10px 30px;font-size:18px;cursor:pointer;">返回關卡選擇</button>
-                `;
-                resultMsg.className = 'result-message success show';
-                
+
+                const hasNext = currentSmallStage < 10;
+                const nextKey = `stage_${currentBigStage}_${currentSmallStage + 1}`;
+                const nextWasLocked = hasNext && !localStorage.getItem(nextKey);
+
+                showSuccessModal({
+                    time: timer,
+                    accuracy,
+                    unlockedNext: nextWasLocked
+                });
+
                 checkKatakanaUnlock();
             } else {
                 // 挑戰失敗
-                const resultMsg = document.getElementById('resultMessage');
                 let reason = '';
                 if (correctAnswers !== totalQuestions) {
                     reason = `正確率未達100% (${accuracy}%)`;
                 } else if (timer >= timeLimit) {
                     reason = '超過時間限制';
                 }
-                
-                resultMsg.innerHTML = `
-                    <strong>挑戰失敗！</strong><br>
-                    ${reason}<br>
-                    用時：${timer}秒 / ${timeLimit}秒<br>
-                    正確率：${accuracy}%<br>
-                    <button onclick="startGame(${currentSmallStage})" style="margin:10px 10px 0 0;padding:10px 30px;font-size:18px;cursor:pointer;">重新挑戰</button>
-                    <button onclick="backToStageSelect()" style="margin-top:10px;padding:10px 30px;font-size:18px;cursor:pointer;">返回關卡選擇</button>
-                `;
-                resultMsg.className = 'result-message fail show';
+                showFailModal(`${reason}<br>用時：${timer}秒 / ${timeLimit}秒<br>正確率：${accuracy}%`);
             }
         }
         
+        // 顯示失敗訊息
+        function showFailModal(messageHtml) {
+            showModal({
+                title: '挑戰失敗！',
+                messageHtml,
+                primaryText: '重新挑戰',
+                secondaryText: '返回關卡選擇',
+                lockGame: true,
+                onPrimary: () => {
+                    hideModal();
+                    startGame(currentSmallStage);
+                },
+                onSecondary: () => {
+                    hideModal();
+                    backToStageSelect();
+                }
+            });
+        }
+
+        // 隱藏失敗彈窗
+        function hideFailModal() {
+            document.getElementById('failModal').classList.remove('show');
+        }
+
         // 返回關卡選擇
         function backToStageSelect() {
             clearInterval(timerInterval);
+            gameEnded = false;
+            hideSuccessModal();
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('stageSelect').style.display = 'block';
             renderStageGrid();
@@ -621,6 +813,7 @@
         
         // 返回主選單
         function backToMain() {
+            hideSuccessModal();
             document.getElementById('stageSelect').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('leaderboardScreen').style.display = 'none';
