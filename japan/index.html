@@ -68,13 +68,21 @@
         }
         
         .katakana-btn {
-            background: #2196F3;
+            background: #9E9E9E;
             color: white;
         }
         
+        .katakana-btn.unlocked {
+            background: #2196F3;
+        }
+
         .vocab-btn {
             background: #9E9E9E;
             color: white;
+        }
+        
+        .vocab-btn.unlocked {
+            background: #E91E63;
         }
         
         .leaderboard-btn {
@@ -153,6 +161,10 @@
             font-weight: bold;
             color: #333;
             margin-bottom: 20px;
+        }
+
+        .kana-display.vocab {
+            font-size: 48px;
         }
         
         .options {
@@ -419,7 +431,7 @@
         <div class="main-menu" id="mainMenu">
             <button class="main-btn hiragana-btn" onclick="openStageSelect(1)">第一大關 - 平假名挑戰</button>
             <button class="main-btn katakana-btn" id="katakanaBtn" onclick="openStageSelect(2)" disabled>第二大關 - 片假名挑戰</button>
-            <button class="main-btn vocab-btn" disabled>第三大關 - 單詞挑戰（即將開放）</button>
+            <button class="main-btn vocab-btn" id="vocabBtn" onclick="openStageSelect(3)" disabled>第三大關 - 單詞挑戰</button>
             <button class="main-btn leaderboard-btn" onclick="showLeaderboard()">排行榜</button>
         </div>
         
@@ -532,6 +544,143 @@
             {char: 'パ', romaji: 'pa', hiragana: 'ぱ'}, {char: 'ピ', romaji: 'pi', hiragana: 'ぴ'}, {char: 'プ', romaji: 'pu', hiragana: 'ぷ'}, {char: 'ペ', romaji: 'pe', hiragana: 'ぺ'}, {char: 'ポ', romaji: 'po', hiragana: 'ぽ'}
         ];
         
+        // 單詞數據：日常最常見100個單詞（三假名以內）
+        const vocabData = [
+            // 1-10: 最常見
+            {word: 'はい', meaning: '是'},
+            {word: 'いいえ', meaning: '不是'},
+            {word: 'ありがとう', meaning: '謝謝'},
+            {word: 'すみません', meaning: '對不起'},
+            {word: 'おはよう', meaning: '早安'},
+            {word: 'こんにちは', meaning: '你好'},
+            {word: 'さようなら', meaning: '再見'},
+            {word: 'おやすみ', meaning: '晚安'},
+            {word: 'いただきます', meaning: '我開動了'},
+            {word: 'ごちそうさま', meaning: '謝謝招待'},
+            // 11-15
+            {word: 'みず', meaning: '水'},
+            {word: 'ごはん', meaning: '飯'},
+            {word: 'パン', meaning: '麵包'},
+            {word: 'にく', meaning: '肉'},
+            {word: 'さかな', meaning: '魚'},
+            // 16-20
+            {word: 'たまご', meaning: '蛋'},
+            {word: 'くだもの', meaning: '水果'},
+            {word: 'やさい', meaning: '蔬菜'},
+            {word: 'おちゃ', meaning: '茶'},
+            {word: 'さけ', meaning: '酒'},
+            // 21-25
+            {word: 'いえ', meaning: '家'},
+            {word: 'えき', meaning: '車站'},
+            {word: 'みせ', meaning: '店'},
+            {word: 'がっこう', meaning: '學校'},
+            {word: 'びょういん', meaning: '醫院'},
+            // 26-30
+            {word: 'でんしゃ', meaning: '電車'},
+            {word: 'くるま', meaning: '車'},
+            {word: 'かさ', meaning: '傘'},
+            {word: 'かばん', meaning: '包包'},
+            {word: 'くつ', meaning: '鞋子'},
+            // 31-35
+            {word: 'ほん', meaning: '書'},
+            {word: 'かぎ', meaning: '鑰匙'},
+            {word: 'でんわ', meaning: '電話'},
+            {word: 'とけい', meaning: '時鐘'},
+            {word: 'めがね', meaning: '眼鏡'},
+            // 36-40
+            {word: 'あさ', meaning: '早上'},
+            {word: 'ひる', meaning: '中午'},
+            {word: 'よる', meaning: '晚上'},
+            {word: 'きょう', meaning: '今天'},
+            {word: 'あした', meaning: '明天'},
+            // 41-45
+            {word: 'きのう', meaning: '昨天'},
+            {word: 'いま', meaning: '現在'},
+            {word: 'あと', meaning: '之後'},
+            {word: 'まえ', meaning: '之前'},
+            {word: 'いつ', meaning: '什麼時候'},
+            // 46-50
+            {word: 'だれ', meaning: '誰'},
+            {word: 'なに', meaning: '什麼'},
+            {word: 'どこ', meaning: '哪裡'},
+            {word: 'なぜ', meaning: '為什麼'},
+            {word: 'いくら', meaning: '多少錢'},
+            // 51-55
+            {word: 'おおきい', meaning: '大的'},
+            {word: 'ちいさい', meaning: '小的'},
+            {word: 'あつい', meaning: '熱的'},
+            {word: 'さむい', meaning: '冷的'},
+            {word: 'たかい', meaning: '貴的'},
+            // 56-60
+            {word: 'やすい', meaning: '便宜的'},
+            {word: 'おいしい', meaning: '好吃的'},
+            {word: 'まずい', meaning: '難吃的'},
+            {word: 'はやい', meaning: '快的'},
+            {word: 'おそい', meaning: '慢的'},
+            // 61-65
+            {word: 'あたらしい', meaning: '新的'},
+            {word: 'ふるい', meaning: '舊的'},
+            {word: 'いい', meaning: '好的'},
+            {word: 'わるい', meaning: '壞的'},
+            {word: 'かわいい', meaning: '可愛的'},
+            // 66-70
+            {word: 'たべる', meaning: '吃'},
+            {word: 'のむ', meaning: '喝'},
+            {word: 'みる', meaning: '看'},
+            {word: 'きく', meaning: '聽'},
+            {word: 'いく', meaning: '去'},
+            // 71-75
+            {word: 'くる', meaning: '來'},
+            {word: 'かえる', meaning: '回去'},
+            {word: 'する', meaning: '做'},
+            {word: 'いう', meaning: '說'},
+            {word: 'かく', meaning: '寫'},
+            // 76-80
+            {word: 'よむ', meaning: '讀'},
+            {word: 'かう', meaning: '買'},
+            {word: 'うる', meaning: '賣'},
+            {word: 'まつ', meaning: '等'},
+            {word: 'ねる', meaning: '睡'},
+            // 81-85
+            {word: 'おきる', meaning: '起床'},
+            {word: 'あるく', meaning: '走路'},
+            {word: 'はしる', meaning: '跑'},
+            {word: 'あそぶ', meaning: '玩'},
+            {word: 'はたらく', meaning: '工作'},
+            // 86-90
+            {word: 'やすむ', meaning: '休息'},
+            {word: 'わかる', meaning: '明白'},
+            {word: 'おしえる', meaning: '教'},
+            {word: 'ならう', meaning: '學習'},
+            {word: 'つかう', meaning: '使用'},
+            // 91-95
+            {word: 'ひと', meaning: '人'},
+            {word: 'おとこ', meaning: '男'},
+            {word: 'おんな', meaning: '女'},
+            {word: 'こども', meaning: '小孩'},
+            {word: 'ともだち', meaning: '朋友'},
+            // 96-100
+            {word: 'せんせい', meaning: '老師'},
+            {word: 'いぬ', meaning: '狗'},
+            {word: 'ねこ', meaning: '貓'},
+            {word: 'はな', meaning: '花'},
+            {word: 'そら', meaning: '天空'}
+        ];
+
+        // 混淆用的額外中文詞彙（50個）
+        const decoyMeanings = [
+            '桌子', '椅子', '窗戶', '門', '牆壁',
+            '電腦', '手機', '電視', '冰箱', '洗衣機',
+            '飛機', '船', '腳踏車', '公車', '計程車',
+            '蘋果', '香蕉', '草莓', '葡萄', '西瓜',
+            '春天', '夏天', '秋天', '冬天', '季節',
+            '紅色', '藍色', '綠色', '黃色', '白色',
+            '唱歌', '跳舞', '畫畫', '游泳', '釣魚',
+            '醫生', '警察', '護士', '司機', '廚師',
+            '山', '河', '海', '森林', '公園',
+            '左邊', '右邊', '上面', '下面', '前面'
+        ];
+
         let currentBigStage = 1;
         let currentSmallStage = 1;
         let currentQuestionIndex = 0;
@@ -633,6 +782,7 @@
         // 初始化
         function init() {
             checkKatakanaUnlock();
+            checkVocabUnlock();
         }
         
         // 檢查第二大關是否解鎖
@@ -645,7 +795,24 @@
                     break;
                 }
             }
-            document.getElementById('katakanaBtn').disabled = !allCompleted;
+            const btn = document.getElementById('katakanaBtn');
+            btn.disabled = !allCompleted;
+            btn.classList.toggle('unlocked', allCompleted);
+        }
+
+        // 檢查第三大關是否解鎖
+        function checkVocabUnlock() {
+            let allCompleted = true;
+            for (let i = 1; i <= 10; i++) {
+                const record = localStorage.getItem(`stage_2_${i}`);
+                if (!record) {
+                    allCompleted = false;
+                    break;
+                }
+            }
+            const btn = document.getElementById('vocabBtn');
+            btn.disabled = !allCompleted;
+            btn.classList.toggle('unlocked', allCompleted);
         }
         
         // 打開關卡選擇
@@ -654,26 +821,47 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('stageSelect').style.display = 'block';
             
-            const title = bigStage === 1 ? '平假名挑戰 - 選擇小關卡' : '片假名挑戰 - 選擇小關卡';
-            document.getElementById('stageSelectTitle').textContent = title;
+            const titles = {
+                1: '平假名挑戰 - 選擇小關卡',
+                2: '片假名挑戰 - 選擇小關卡',
+                3: '單詞挑戰 - 選擇小關卡'
+            };
+            document.getElementById('stageSelectTitle').textContent = titles[bigStage];
             
             renderStageGrid();
         }
         
+        // 取得大關的小關數量
+        function getSubStageCount() {
+            return currentBigStage === 3 ? 19 : 10;
+        }
+
+        // 取得小關的題目數量
+        function getKanaCount(smallStage) {
+            if (currentBigStage === 3) {
+                // 第三大關：第1關10題，之後每關+5題
+                return 10 + (smallStage - 1) * 5;
+            }
+            return 15 + (smallStage - 1) * 5;
+        }
+
         // 渲染關卡網格
         function renderStageGrid() {
             const grid = document.getElementById('stageGrid');
             grid.innerHTML = '';
             
-            for (let i = 1; i <= 10; i++) {
+            const subStageCount = getSubStageCount();
+
+            for (let i = 1; i <= subStageCount; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'stage-btn';
                 
-                const kanaCount = 15 + (i - 1) * 5;
+                const kanaCount = getKanaCount(i);
                 const timeLimit = kanaCount * 2;
                 const record = localStorage.getItem(`stage_${currentBigStage}_${i}`);
-                
-                btn.innerHTML = `小關 ${i}<br>${kanaCount}個假名<br>限時 ${timeLimit}秒`;
+
+                const label = currentBigStage === 3 ? `${kanaCount}個單詞` : `${kanaCount}個假名`;
+                btn.innerHTML = `小關 ${i}<br>${label}<br>限時 ${timeLimit}秒`;
                 
                 if (record) {
                     btn.classList.add('completed');
@@ -721,27 +909,35 @@
             // 顯示第一題
             showQuestion();
         }
-        
+
         // 生成題目
         function generateQuestions() {
-            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const kanaCount = getKanaCount(currentSmallStage);
+
+            if (currentBigStage === 3) {
+                // 單詞關卡
+                const availableVocab = vocabData.slice(0, kanaCount);
+                questions = [];
+                availableVocab.forEach(v => questions.push({...v}));
+                while (questions.length < kanaCount) {
+                    const rv = availableVocab[Math.floor(Math.random() * availableVocab.length)];
+                    questions.push({...rv});
+                }
+                shuffleArray(questions);
+                return;
+            }
+
             const data = currentBigStage === 1 ? hiraganaData : katakanaData;
             const availableKana = data.slice(0, kanaCount);
             
             questions = [];
-            
-            // 確保每個假名至少出現一次
             availableKana.forEach(kana => {
                 questions.push({...kana});
             });
-            
-            // 隨機補齊到kanaCount個題目
             while (questions.length < kanaCount) {
                 const randomKana = availableKana[Math.floor(Math.random() * availableKana.length)];
                 questions.push({...randomKana});
             }
-            
-            // 打亂題目順序
             shuffleArray(questions);
         }
         
@@ -755,11 +951,17 @@
             isAnswering = true;
             questionStartTime = Date.now();
             const question = questions[currentQuestionIndex];
-            document.getElementById('kanaDisplay').textContent = question.char;
+            const display = document.getElementById('kanaDisplay');
+            display.textContent = currentBigStage === 3 ? question.word : question.char;
+            display.classList.toggle('vocab', currentBigStage === 3);
             document.getElementById('resultMessage').classList.remove('show');
             
             // 生成選項
-            generateOptions(question);
+            if (currentBigStage === 3) {
+                generateVocabOptions(question);
+            } else {
+                generateOptions(question);
+            }
         }
         
         // 生成選項
@@ -797,7 +999,103 @@
                 optionsDiv.appendChild(btn);
             });
         }
-        
+
+        // 生成單詞選項（中文意思）
+        function generateVocabOptions(correctQuestion) {
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            // 收集所有可用的中文意思（排除正確答案）
+            const allMeanings = vocabData
+                .map(v => v.meaning)
+                .filter(m => m !== correctQuestion.meaning);
+            const allDecoys = [...allMeanings, ...decoyMeanings];
+
+            // 隨機挑3個不重複的錯誤選項
+            const wrongOptions = [];
+            const usedSet = new Set([correctQuestion.meaning]);
+            while (wrongOptions.length < 3) {
+                const pick = allDecoys[Math.floor(Math.random() * allDecoys.length)];
+                if (!usedSet.has(pick)) {
+                    usedSet.add(pick);
+                    wrongOptions.push(pick);
+                }
+            }
+
+            const options = [
+                { meaning: correctQuestion.meaning, isCorrect: true },
+                ...wrongOptions.map(m => ({ meaning: m, isCorrect: false }))
+            ];
+            shuffleArray(options);
+
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option.meaning;
+                btn.onclick = () => checkVocabAnswer(option, correctQuestion, btn);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        // 檢查單詞答案
+        function checkVocabAnswer(selected, correct, btn) {
+            if (!isAnswering || gameEnded) return;
+            isAnswering = false;
+
+            const responseTime = (Date.now() - questionStartTime) / 1000;
+
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach(b => b.style.pointerEvents = 'none');
+
+            if (selected.meaning === correct.meaning) {
+                btn.classList.add('correct');
+                correctAnswers++;
+                document.getElementById('correct').textContent = correctAnswers;
+
+                if (responseTime > 2) {
+                    slowAnswers.push({
+                        char: correct.word,
+                        romaji: correct.meaning,
+                        hiragana: '',
+                        time: responseTime.toFixed(1)
+                    });
+                }
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    showQuestion();
+                    optionBtns.forEach(b => b.style.pointerEvents = 'auto');
+                }, 500);
+            } else {
+                btn.classList.add('wrong');
+
+                wrongAnswers.push({
+                    char: correct.char,
+                    romaji: correct.romaji,
+                    hiragana: correct.hiragana || '',
+                    yourAnswer: selected.meaning
+                });
+
+                optionBtns.forEach(b => {
+                    if (b.textContent === correct.meaning) b.classList.add('correct');
+                });
+
+                showModal({
+                    title: '答錯了',
+                    messageHtml: `<strong>${correct.word}</strong> 的意思是：<strong>${correct.meaning}</strong>`,
+                    primaryText: '繼續',
+                    secondaryText: null,
+                    lockGame: false,
+                    onPrimary: () => {
+                        hideModal();
+                        currentQuestionIndex++;
+                        showQuestion();
+                        optionBtns.forEach(b => b.style.pointerEvents = 'auto');
+                    }
+                });
+            }
+        }
+
         // 檢查答案
         function checkAnswer(selected, correct, btn) {
             if (!isAnswering || gameEnded) return;
@@ -868,7 +1166,7 @@
         
         // 開始計時
         function startTimer() {
-            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const kanaCount = getKanaCount(currentSmallStage);
             const timeLimit = kanaCount * 2;
             
             timerInterval = setInterval(() => {
@@ -888,7 +1186,7 @@
             clearInterval(timerInterval);
             gameEnded = true;
             
-            const kanaCount = 15 + (currentSmallStage - 1) * 5;
+            const kanaCount = getKanaCount(currentSmallStage);
             const timeLimit = kanaCount * 2;
             const accuracy = (correctAnswers / totalQuestions * 100).toFixed(0);
             
@@ -912,6 +1210,7 @@
                 });
 
                 checkKatakanaUnlock();
+                checkVocabUnlock();
             } else {
                 // 挑戰失敗
                 let reason = '';
@@ -954,18 +1253,20 @@
             document.getElementById('gameScreen').style.display = 'none';
             const reviewEl = document.getElementById('reviewScreen');
             reviewEl.style.display = 'none';
-            // 強制重排以重新觸發動畫
             void reviewEl.offsetWidth;
             reviewEl.style.display = 'block';
 
             const content = document.getElementById('reviewContent');
             content.innerHTML = '';
 
-            // 錯誤假名區
+            const isVocab = currentBigStage === 3;
+            const wrongLabel = isVocab ? '答錯的單詞' : '答錯的假名';
+            const slowLabel = isVocab ? '反應較慢的單詞' : '反應較慢的假名';
+
             if (wrongs.length > 0) {
                 const wrongTitle = document.createElement('div');
                 wrongTitle.className = 'review-section-title wrong';
-                wrongTitle.textContent = `❌ 答錯的假名（${wrongs.length}個）`;
+                wrongTitle.textContent = `❌ ${wrongLabel}（${wrongs.length}個）`;
                 content.appendChild(wrongTitle);
 
                 const wrongGrid = document.createElement('div');
@@ -975,22 +1276,29 @@
                     const card = document.createElement('div');
                     card.className = 'review-card wrong';
                     card.style.animationDelay = (idx * 0.07) + 's';
-                    card.innerHTML = `
-                        <div class="kana">${item.char}</div>
-                        <div class="romaji">${item.romaji}</div>
-                        <div class="detail">你選了：${item.yourAnswer}</div>
-                    `;
+                    if (isVocab) {
+                        card.innerHTML = `
+                            <div class="kana">${item.char}</div>
+                            <div class="romaji">${item.romaji}</div>
+                            <div class="detail">你選了：${item.yourAnswer}</div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div class="kana">${item.char}</div>
+                            <div class="romaji">${item.romaji}</div>
+                            <div class="detail">你選了：${item.yourAnswer}</div>
+                        `;
+                    }
                     wrongGrid.appendChild(card);
                 });
 
                 content.appendChild(wrongGrid);
             }
 
-            // 慢答題假名區
             if (slows.length > 0) {
                 const slowTitle = document.createElement('div');
                 slowTitle.className = 'review-section-title slow';
-                slowTitle.textContent = `⏱ 反應較慢的假名（${slows.length}個，超過2秒）`;
+                slowTitle.textContent = `⏱ ${slowLabel}（${slows.length}個，超過2秒）`;
                 content.appendChild(slowTitle);
 
                 const slowGrid = document.createElement('div');
@@ -1012,7 +1320,6 @@
                 content.appendChild(slowGrid);
             }
 
-            // 繼續按鈕
             document.getElementById('reviewContinueBtn').onclick = () => {
                 document.getElementById('reviewScreen').style.display = 'none';
                 setTimeout(() => {
@@ -1074,13 +1381,16 @@
             
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '';
+
+            const stageNames = { 1: '平假名', 2: '片假名', 3: '單詞' };
+            const stageCounts = { 1: 10, 2: 10, 3: 19 };
             
-            for (let bigStage = 1; bigStage <= 2; bigStage++) {
-                for (let smallStage = 1; smallStage <= 10; smallStage++) {
+            for (let bigStage = 1; bigStage <= 3; bigStage++) {
+                for (let smallStage = 1; smallStage <= stageCounts[bigStage]; smallStage++) {
                     const record = localStorage.getItem(`stage_${bigStage}_${smallStage}`);
                     if (record) {
                         const row = tbody.insertRow();
-                        row.insertCell(0).textContent = bigStage === 1 ? '平假名' : '片假名';
+                        row.insertCell(0).textContent = stageNames[bigStage];
                         row.insertCell(1).textContent = `小關 ${smallStage}`;
                         row.insertCell(2).textContent = `${record} 秒`;
                     }
