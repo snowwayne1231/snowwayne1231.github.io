@@ -235,14 +235,16 @@
         .modal-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 999;
+            transition: background 0.3s ease;
         }
         .modal-backdrop.show {
             display: flex;
+            background: rgba(0,0,0,0.5);
         }
         .modal {
             background: #fff;
@@ -252,6 +254,13 @@
             width: 90%;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.8) translateY(20px);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+        .modal-backdrop.show .modal {
+            transform: scale(1) translateY(0);
+            opacity: 1;
         }
         .modal h3 {
             margin-bottom: 10px;
@@ -299,6 +308,107 @@
             0% { transform: translateY(-10vh) rotate(0deg); }
             100% { transform: translateY(110vh) rotate(540deg); }
         }
+
+        /* 複習畫面 */
+        .review-screen {
+            display: none;
+            animation: fadeSlideIn 0.4s ease both;
+        }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .review-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .review-section-title.wrong {
+            background: #f44336;
+            color: #fff;
+        }
+        .review-section-title.slow {
+            background: #ff9800;
+            color: #fff;
+        }
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .review-card {
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            transition: transform 0.2s;
+            animation: cardPop 0.3s ease both;
+        }
+        @keyframes cardPop {
+            from {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .review-card:hover {
+            transform: scale(1.05);
+        }
+        .review-card.wrong {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+        .review-card.slow {
+            background: #fff8e1;
+            border: 2px solid #ffca28;
+        }
+        .review-card .kana {
+            font-size: 42px;
+            font-weight: bold;
+        }
+        .review-card.wrong .kana {
+            color: #d32f2f;
+        }
+        .review-card.slow .kana {
+            color: #f57f17;
+        }
+        .review-card .romaji {
+            font-size: 18px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .review-card .detail {
+            font-size: 13px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .review-continue-btn {
+            display: block;
+            margin: 24px auto 0;
+            padding: 14px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .review-continue-btn:hover {
+            background: #388E3C;
+        }
     </style>
 </head>
 <body>
@@ -332,6 +442,13 @@
             </div>
             <div class="options" id="options"></div>
             <div class="result-message" id="resultMessage"></div>
+        </div>
+
+        <!-- 複習畫面 -->
+        <div class="review-screen" id="reviewScreen">
+            <h2>📖 複習一下吧！</h2>
+            <div id="reviewContent"></div>
+            <button class="review-continue-btn" id="reviewContinueBtn">繼續</button>
         </div>
         
         <!-- 排行榜 -->
@@ -425,6 +542,11 @@
         let questions = [];
         let isAnswering = false;
         let gameEnded = false;
+
+        // 複習追蹤
+        let wrongAnswers = [];      // { char, romaji, hiragana, yourAnswer }
+        let slowAnswers = [];       // { char, romaji, hiragana, time }
+        let questionStartTime = 0;  // 每題開始時間戳
 
         // ========== 彩窗函式 ==========
         function showModal({ title, messageHtml, primaryText, secondaryText, onPrimary, onSecondary, lockGame }) {
@@ -576,11 +698,15 @@
             correctAnswers = 0;
             timer = 0;
             gameEnded = false;
+            wrongAnswers = [];
+            slowAnswers = [];
+            questionStartTime = 0;
             hideFailModal();
             hideSuccessModal();
             
             document.getElementById('stageSelect').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('reviewScreen').style.display = 'none';
             
             // 生成題目
             generateQuestions();
@@ -627,6 +753,7 @@
             }
             
             isAnswering = true;
+            questionStartTime = Date.now();
             const question = questions[currentQuestionIndex];
             document.getElementById('kanaDisplay').textContent = question.char;
             document.getElementById('resultMessage').classList.remove('show');
@@ -676,6 +803,8 @@
             if (!isAnswering || gameEnded) return;
             isAnswering = false;
 
+            const responseTime = (Date.now() - questionStartTime) / 1000;
+
             const optionBtns = document.querySelectorAll('.option-btn');
             optionBtns.forEach(b => b.style.pointerEvents = 'none');
 
@@ -684,6 +813,16 @@
                 btn.classList.add('correct');
                 correctAnswers++;
                 document.getElementById('correct').textContent = correctAnswers;
+
+                // 追蹤慢答題（正確但超過2秒）
+                if (responseTime > 2) {
+                    slowAnswers.push({
+                        char: correct.char,
+                        romaji: correct.romaji,
+                        hiragana: correct.hiragana || '',
+                        time: responseTime.toFixed(1)
+                    });
+                }
                 
                 setTimeout(() => {
                     currentQuestionIndex++;
@@ -693,6 +832,14 @@
             } else {
                 // 答錯
                 btn.classList.add('wrong');
+
+                // 追蹤錯誤答案
+                wrongAnswers.push({
+                    char: correct.char,
+                    romaji: correct.romaji,
+                    hiragana: correct.hiragana || '',
+                    yourAnswer: selected.romaji
+                });
 
                 optionBtns.forEach(b => {
                     const btnText = b.textContent;
@@ -730,7 +877,7 @@
                 document.getElementById('timer').textContent = timer;
 
                 if (timer >= timeLimit) {
-                    showFailModal('超過時間限制');
+                    endGame(false);
                 }
             }, 1000);
         }
@@ -746,7 +893,7 @@
             const accuracy = (correctAnswers / totalQuestions * 100).toFixed(0);
             
             if (success && correctAnswers === totalQuestions && timer < timeLimit) {
-                // 挑戰成功
+                // 挑戰成功 — 不需要複習
                 const key = `stage_${currentBigStage}_${currentSmallStage}`;
                 const oldRecord = localStorage.getItem(key);
 
@@ -773,11 +920,108 @@
                 } else if (timer >= timeLimit) {
                     reason = '超過時間限制';
                 }
-                showFailModal(`${reason}<br>用時：${timer}秒 / ${timeLimit}秒<br>正確率：${accuracy}%`);
+
+                const failMsg = `${reason}<br>用時：${timer}秒 / ${timeLimit}秒<br>正確率：${accuracy}%`;
+
+                // 去重慢答題（排除已在錯誤列表中的）
+                const wrongChars = new Set(wrongAnswers.map(w => w.char));
+                const uniqueSlowAnswers = slowAnswers.filter(s => !wrongChars.has(s.char));
+
+                if (wrongAnswers.length > 0) {
+                    // 有錯誤，先彈出提示窗，確定後再進入複習畫面
+                    showModal({
+                        title: '⏰ 挑戰結束',
+                        messageHtml: `${reason}<br>用時：${timer}秒 / ${timeLimit}秒<br>正確率：${accuracy}%<br><br>接下來複習一下答錯的假名吧！`,
+                        primaryText: '開始複習',
+                        secondaryText: null,
+                        lockGame: false,
+                        onPrimary: () => {
+                            hideModal();
+                            setTimeout(() => {
+                                showReviewScreen(wrongAnswers, uniqueSlowAnswers, failMsg);
+                            }, 300);
+                        }
+                    });
+                } else {
+                    // 沒有答錯（純粹超時），直接顯示失敗彈窗
+                    showFailModal(failMsg);
+                }
             }
         }
+
+        // 顯示複習畫面
+        function showReviewScreen(wrongs, slows, failMsg) {
+            document.getElementById('gameScreen').style.display = 'none';
+            const reviewEl = document.getElementById('reviewScreen');
+            reviewEl.style.display = 'none';
+            // 強制重排以重新觸發動畫
+            void reviewEl.offsetWidth;
+            reviewEl.style.display = 'block';
+
+            const content = document.getElementById('reviewContent');
+            content.innerHTML = '';
+
+            // 錯誤假名區
+            if (wrongs.length > 0) {
+                const wrongTitle = document.createElement('div');
+                wrongTitle.className = 'review-section-title wrong';
+                wrongTitle.textContent = `❌ 答錯的假名（${wrongs.length}個）`;
+                content.appendChild(wrongTitle);
+
+                const wrongGrid = document.createElement('div');
+                wrongGrid.className = 'review-grid';
+
+                wrongs.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card wrong';
+                    card.style.animationDelay = (idx * 0.07) + 's';
+                    card.innerHTML = `
+                        <div class="kana">${item.char}</div>
+                        <div class="romaji">${item.romaji}</div>
+                        <div class="detail">你選了：${item.yourAnswer}</div>
+                    `;
+                    wrongGrid.appendChild(card);
+                });
+
+                content.appendChild(wrongGrid);
+            }
+
+            // 慢答題假名區
+            if (slows.length > 0) {
+                const slowTitle = document.createElement('div');
+                slowTitle.className = 'review-section-title slow';
+                slowTitle.textContent = `⏱ 反應較慢的假名（${slows.length}個，超過2秒）`;
+                content.appendChild(slowTitle);
+
+                const slowGrid = document.createElement('div');
+                slowGrid.className = 'review-grid';
+
+                const baseDelay = wrongs.length * 0.07;
+                slows.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card slow';
+                    card.style.animationDelay = (baseDelay + idx * 0.07) + 's';
+                    card.innerHTML = `
+                        <div class="kana">${item.char}</div>
+                        <div class="romaji">${item.romaji}</div>
+                        <div class="detail">用時：${item.time}秒</div>
+                    `;
+                    slowGrid.appendChild(card);
+                });
+
+                content.appendChild(slowGrid);
+            }
+
+            // 繼續按鈕
+            document.getElementById('reviewContinueBtn').onclick = () => {
+                document.getElementById('reviewScreen').style.display = 'none';
+                setTimeout(() => {
+                    showFailModal(failMsg);
+                }, 200);
+            };
+        }
         
-        // 顯示失敗訊息
+        // 失敗彈窗
         function showFailModal(messageHtml) {
             showModal({
                 title: '挑戰失敗！',
@@ -807,6 +1051,7 @@
             gameEnded = false;
             hideSuccessModal();
             document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('reviewScreen').style.display = 'none';
             document.getElementById('stageSelect').style.display = 'block';
             renderStageGrid();
         }
@@ -816,6 +1061,7 @@
             hideSuccessModal();
             document.getElementById('stageSelect').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('reviewScreen').style.display = 'none';
             document.getElementById('leaderboardScreen').style.display = 'none';
             document.getElementById('mainMenu').style.display = 'flex';
             checkKatakanaUnlock();
