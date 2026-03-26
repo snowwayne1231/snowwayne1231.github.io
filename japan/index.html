@@ -1073,8 +1073,8 @@
                 btn.classList.add('wrong');
 
                 wrongAnswers.push({
-                    char: correct.char,
-                    romaji: correct.romaji,
+                    char: correct.word,
+                    romaji: correct.meaning,
                     hiragana: correct.hiragana || '',
                     yourAnswer: selected.meaning
                 });
@@ -1317,16 +1317,17 @@
                             <div class="romaji">${item.romaji}</div>
                             <div class="detail">你選了：${item.yourAnswer}</div>
                         `;
+                        // 單詞卡片點擊播放該單詞發音
+                        card.onclick = () => playJapanesePronunciation(item.char, false);
                     } else {
                         card.innerHTML = `
                             <div class="kana">${item.char}</div>
                             <div class="romaji">${item.romaji}</div>
                             <div class="detail">你選了：${item.yourAnswer}</div>
                         `;
+                        // 假名卡片點擊播放該假名發音
+                        card.onclick = () => playJapanesePronunciation(item.char, false);
                     }
-                    
-                    // 點擊卡片播放發音（放慢速度）
-                    card.onclick = () => playJapanesePronunciation(item.char, false);
                     
                     wrongGrid.appendChild(card);
                 });
