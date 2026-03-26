@@ -1052,6 +1052,9 @@
                 correctAnswers++;
                 document.getElementById('correct').textContent = correctAnswers;
 
+                // 播放正確答案的日語發音（正常速度）
+                playJapanesePronunciation(correct.word, true);
+
                 if (responseTime > 2) {
                     slowAnswers.push({
                         char: correct.word,
@@ -1088,11 +1091,16 @@
                     lockGame: false,
                     onPrimary: () => {
                         hideModal();
+                        // 點擊確認時再播放一次發音（放慢速度）
+                        playJapanesePronunciation(correct.word, false);
                         currentQuestionIndex++;
                         showQuestion();
                         optionBtns.forEach(b => b.style.pointerEvents = 'auto');
                     }
                 });
+
+                // 播放正確答案的日語發音（放慢速度）
+                playJapanesePronunciation(correct.word, false);
             }
         }
 
@@ -1111,6 +1119,9 @@
                 btn.classList.add('correct');
                 correctAnswers++;
                 document.getElementById('correct').textContent = correctAnswers;
+
+                // 播放正確答案的日語發音（正常速度）
+                playJapanesePronunciation(correct.char, true);
 
                 // 追蹤慢答題（正確但超過2秒）
                 if (responseTime > 2) {
@@ -1156,14 +1167,36 @@
                     lockGame: false,
                     onPrimary: () => {
                         hideModal();
+                        // 點擊確認時再播放一次發音（放慢速度）
+                        playJapanesePronunciation(correct.char, false);
                         currentQuestionIndex++;
                         showQuestion();
                         optionBtns.forEach(b => b.style.pointerEvents = 'auto');
                     }
                 });
+
+                // 播放正確答案的日語發音（放慢速度）
+                // playJapanesePronunciation(correct.char, false);
             }
         }
-        
+
+        // 播放日語發音
+        function playJapanesePronunciation(text, isCorrect = true) {
+            // 使用 Web Speech API 播放日語發音
+            if ('speechSynthesis' in window) {
+                // 停止之前的播放
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ja-JP';  // 設定為日語
+                utterance.rate = isCorrect ? 1.0 : 0.7;  // 答對正常速度，答錯放慢
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
         // 開始計時
         function startTimer() {
             const kanaCount = getKanaCount(currentSmallStage);
@@ -1276,6 +1309,8 @@
                     const card = document.createElement('div');
                     card.className = 'review-card wrong';
                     card.style.animationDelay = (idx * 0.07) + 's';
+                    card.style.cursor = 'pointer';
+                    
                     if (isVocab) {
                         card.innerHTML = `
                             <div class="kana">${item.char}</div>
@@ -1289,6 +1324,10 @@
                             <div class="detail">你選了：${item.yourAnswer}</div>
                         `;
                     }
+                    
+                    // 點擊卡片播放發音（放慢速度）
+                    card.onclick = () => playJapanesePronunciation(item.char, false);
+                    
                     wrongGrid.appendChild(card);
                 });
 
@@ -1309,11 +1348,17 @@
                     const card = document.createElement('div');
                     card.className = 'review-card slow';
                     card.style.animationDelay = (baseDelay + idx * 0.07) + 's';
+                    card.style.cursor = 'pointer';
+                    
                     card.innerHTML = `
                         <div class="kana">${item.char}</div>
                         <div class="romaji">${item.romaji}</div>
                         <div class="detail">用時：${item.time}秒</div>
                     `;
+                    
+                    // 點擊卡片播放發音（放慢速度）
+                    card.onclick = () => playJapanesePronunciation(item.char, false);
+                    
                     slowGrid.appendChild(card);
                 });
 
